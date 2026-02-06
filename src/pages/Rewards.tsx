@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { RewardCard } from "@/components/RewardCard";
 import { useRewards } from "@/hooks/useRewards";
@@ -25,6 +25,14 @@ export default function Rewards() {
   const { rewards, isLoading, redeemReward, isRedeeming, canAfford } = useRewards();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Trigger animation on filter change
+  useEffect(() => {
+    setIsTransitioning(true);
+    const timer = setTimeout(() => setIsTransitioning(false), 50);
+    return () => clearTimeout(timer);
+  }, [selectedCategory, searchQuery]);
 
   const filteredRewards = rewards.filter((r) => {
     const matchesCategory = selectedCategory === "all" || r.category === selectedCategory;
@@ -154,15 +162,24 @@ export default function Rewards() {
                 {filteredRewards.length} resultado{filteredRewards.length !== 1 ? "s" : ""} para "{searchQuery}"
               </p>
             )}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRewards.map((reward) => (
-                <RewardCard
+            <div 
+              className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300 ${
+                isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+              }`}
+            >
+              {filteredRewards.map((reward, index) => (
+                <div 
                   key={reward.id}
-                  reward={reward}
-                  canAfford={user ? canAfford(reward.credits_cost) : false}
-                  onRedeem={() => handleRedeem(reward)}
-                  isRedeeming={isRedeeming}
-                />
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms`, animationFillMode: "both" }}
+                >
+                  <RewardCard
+                    reward={reward}
+                    canAfford={user ? canAfford(reward.credits_cost) : false}
+                    onRedeem={() => handleRedeem(reward)}
+                    isRedeeming={isRedeeming}
+                  />
+                </div>
               ))}
             </div>
           </>
