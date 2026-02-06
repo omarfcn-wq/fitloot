@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useCredits } from "./useCredits";
 import type { ActivityInsert } from "@/lib/supabase-types";
+import { calculateTrustScore } from "@/lib/trust-score";
 
 const CREDITS_PER_MINUTE = 2;
 
@@ -27,6 +28,18 @@ export function useActivities() {
     enabled: !!user,
   });
 
+  // Fetch validation rules for trust score calculation
+  const { data: validationRules } = useQuery({
+    queryKey: ["activity_validation_rules"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("activity_validation_rules")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const logActivity = useMutation({
     mutationFn: async ({
       activityType,
@@ -37,6 +50,17 @@ export function useActivities() {
     }) => {
       if (!user) throw new Error("No user");
       
+      // Calculate trust score for manual activity
+      const trustResult = calculateTrustScore(
+        {
+          activityType,
+          durationMinutes,
+          source: "manual",
+          // No biometric data for manual entries
+        },
+        validationRules ?? undefined
+      );
+      
       const creditsEarned = durationMinutes * CREDITS_PER_MINUTE;
       
       const activityData: ActivityInsert = {
@@ -45,6 +69,8 @@ export function useActivities() {
         duration_minutes: durationMinutes,
         credits_earned: creditsEarned,
         source: "manual",
+        trust_score: trustResult.score,
+        trust_flags: trustResult.flags,
       };
       
       const { error } = await supabase.from("activities").insert(activityData);
@@ -52,7 +78,7 @@ export function useActivities() {
       
       addCredits(creditsEarned);
       
-      return creditsEarned;
+      return { creditsEarned, trustScore: trustResult.score };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities", user?.id] });
@@ -66,11 +92,19 @@ export function useActivities() {
     0
   ) ?? 0;
 
+  // Calculate average trust score
+  const averageTrustScore = activities && activities.length > 0
+    ? Math.round(
+        activities.reduce((sum, a) => sum + (a.trust_score ?? 100), 0) / activities.length
+      )
+    : 100;
+
   return {
     activities: activities ?? [],
     isLoading,
     logActivity: logActivity.mutate,
     isLogging: logActivity.isPending,
     totalCreditsEarned,
+    averageTrustScore,
   };
 }

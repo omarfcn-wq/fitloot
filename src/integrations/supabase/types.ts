@@ -56,39 +56,93 @@ export type Database = {
       activities: {
         Row: {
           activity_type: string
+          calories_burned: number | null
           completed_at: string
           created_at: string
           credits_earned: number
+          distance_meters: number | null
           duration_minutes: number
           external_id: string | null
+          heart_rate_avg: number | null
+          heart_rate_max: number | null
           id: string
           provider: string | null
           source: string | null
+          trust_flags: string[] | null
+          trust_score: number | null
           user_id: string
         }
         Insert: {
           activity_type: string
+          calories_burned?: number | null
           completed_at?: string
           created_at?: string
           credits_earned: number
+          distance_meters?: number | null
           duration_minutes: number
           external_id?: string | null
+          heart_rate_avg?: number | null
+          heart_rate_max?: number | null
           id?: string
           provider?: string | null
           source?: string | null
+          trust_flags?: string[] | null
+          trust_score?: number | null
           user_id: string
         }
         Update: {
           activity_type?: string
+          calories_burned?: number | null
           completed_at?: string
           created_at?: string
           credits_earned?: number
+          distance_meters?: number | null
           duration_minutes?: number
           external_id?: string | null
+          heart_rate_avg?: number | null
+          heart_rate_max?: number | null
           id?: string
           provider?: string | null
           source?: string | null
+          trust_flags?: string[] | null
+          trust_score?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      activity_validation_rules: {
+        Row: {
+          activity_type: string
+          created_at: string
+          expected_hr_max: number | null
+          expected_hr_min: number | null
+          id: string
+          max_calories_per_minute: number | null
+          max_duration_minutes: number
+          min_calories_per_minute: number | null
+          min_duration_minutes: number
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          expected_hr_max?: number | null
+          expected_hr_min?: number | null
+          id?: string
+          max_calories_per_minute?: number | null
+          max_duration_minutes?: number
+          min_calories_per_minute?: number | null
+          min_duration_minutes?: number
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          expected_hr_max?: number | null
+          expected_hr_min?: number | null
+          id?: string
+          max_calories_per_minute?: number | null
+          max_duration_minutes?: number
+          min_calories_per_minute?: number | null
+          min_duration_minutes?: number
         }
         Relationships: []
       }
