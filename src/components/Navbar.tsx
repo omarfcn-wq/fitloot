@@ -5,7 +5,7 @@ import { CreditDisplay } from "./CreditDisplay";
 import { LevelBadge } from "./LevelBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievements } from "@/hooks/useAchievements";
-import { LogOut, Menu, Settings, ShieldAlert, Trophy } from "lucide-react";
+import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -69,12 +69,20 @@ export function Navbar() {
                   </Button>
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin">
-                    <Button variant="ghost" size="sm" className="gap-2 text-primary">
-                      <ShieldAlert className="h-4 w-4" />
-                      Admin
-                    </Button>
-                  </Link>
+                  <>
+                    <Link to="/analytics">
+                      <Button variant="ghost" size="sm" className="gap-2 text-primary">
+                        <BarChart3 className="h-4 w-4" />
+                        Analytics
+                      </Button>
+                    </Link>
+                    <Link to="/admin">
+                      <Button variant="ghost" size="sm" className="gap-2 text-primary">
+                        <ShieldAlert className="h-4 w-4" />
+                        Admin
+                      </Button>
+                    </Link>
+                  </>
                 )}
               </div>
               <LevelBadge 
@@ -102,10 +110,16 @@ export function Navbar() {
                     Logros
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/admin")}>
-                      <ShieldAlert className="mr-2 h-4 w-4" />
-                      Panel Admin
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/analytics")}>
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        Analytics
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/admin")}>
+                        <ShieldAlert className="mr-2 h-4 w-4" />
+                        Panel Admin
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
