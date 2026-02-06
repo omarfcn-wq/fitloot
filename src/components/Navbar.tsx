@@ -5,7 +5,7 @@ import { CreditDisplay } from "./CreditDisplay";
 import { LevelBadge } from "./LevelBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievements } from "@/hooks/useAchievements";
-import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3 } from "lucide-react";
+import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -68,6 +68,12 @@ export function Navbar() {
                     Logros
                   </Button>
                 </Link>
+                <Link to="/history">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <History className="h-4 w-4" />
+                    Historial
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <>
                     <Link to="/analytics">
@@ -108,6 +114,10 @@ export function Navbar() {
                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/achievements")}>
                     <Trophy className="mr-2 h-4 w-4" />
                     Logros
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/history")}>
+                    <History className="mr-2 h-4 w-4" />
+                    Historial
                   </DropdownMenuItem>
                   {isAdmin && (
                     <>
