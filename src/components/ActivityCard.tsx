@@ -8,12 +8,15 @@ import {
   Mountain,
   Timer,
   Coins,
-  Heart
+  Heart,
+  ArrowRight
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Activity } from "@/lib/supabase-types";
 import { TrustScoreBadge } from "./TrustScoreBadge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const activityIcons: Record<string, React.ElementType> = {
   running: Footprints,
@@ -31,6 +34,8 @@ const activityNames: Record<string, string> = {
   hiking: "Senderismo",
 };
 
+const CREDITS_PER_MINUTE = 2;
+
 interface ActivityCardProps {
   activity: Activity;
 }
@@ -41,6 +46,11 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   // Parse trust_flags from the activity (it's stored as text[] in DB)
   const trustFlags = activity.trust_flags ?? [];
   const trustScore = activity.trust_score ?? 100;
+
+  // Calculate if there was a penalty
+  const baseCredits = activity.duration_minutes * CREDITS_PER_MINUTE;
+  const hasPenalty = activity.credits_earned < baseCredits;
+  const multiplier = hasPenalty ? (activity.credits_earned / baseCredits) : 1;
 
   return (
     <Card className="bg-card border-border hover:border-primary/50 transition-colors">
@@ -74,10 +84,34 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             </span>
           </div>
         </div>
-        <Badge className="bg-primary/20 text-primary border-primary/30 shrink-0">
-          <Coins className="h-3 w-3 mr-1" />
-          +{activity.credits_earned}
-        </Badge>
+        
+        {hasPenalty ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className={cn(
+                  "shrink-0 gap-1",
+                  "bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/30"
+                )}>
+                  <Coins className="h-3 w-3" />
+                  <span className="line-through text-muted-foreground text-xs">{baseCredits}</span>
+                  <ArrowRight className="h-3 w-3" />
+                  <span>+{activity.credits_earned}</span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">
+                  Penalización {Math.round(multiplier * 100)}% por Trust Score {trustScore}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <Badge className="bg-primary/20 text-primary border-primary/30 shrink-0">
+            <Coins className="h-3 w-3 mr-1" />
+            +{activity.credits_earned}
+          </Badge>
+        )}
       </CardContent>
     </Card>
   );
