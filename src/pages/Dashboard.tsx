@@ -6,17 +6,20 @@ import { Navbar } from "@/components/Navbar";
 import { LogActivityDialog } from "@/components/LogActivityDialog";
 import { ActivityCard } from "@/components/ActivityCard";
 import { LevelBadge } from "@/components/LevelBadge";
+import { TrustScoreTutorial } from "@/components/onboarding/TrustScoreTutorial";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { useActivities } from "@/hooks/useActivities";
 import { useAchievements } from "@/hooks/useAchievements";
-import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight } from "lucide-react";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight, HelpCircle } from "lucide-react";
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { credits, isLoading: creditsLoading } = useCredits();
   const { activities, isLoading: activitiesLoading, totalCreditsEarned } = useActivities();
   const { levelInfo, userStats, userAchievements, achievements, checkAchievements } = useAchievements();
+  const { showTutorial, openTutorial, closeTutorial, completeOnboarding } = useOnboarding();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +76,13 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      {/* Tutorial */}
+      <TrustScoreTutorial
+        open={showTutorial}
+        onClose={closeTutorial}
+        onComplete={completeOnboarding}
+      />
+      
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-6xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -81,7 +91,18 @@ export default function Dashboard() {
               Bienvenido, {user?.email?.split("@")[0]}
             </p>
           </div>
-          <LogActivityDialog />
+          <div className="flex items-center gap-2">
+            <LogActivityDialog />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={openTutorial}
+              className="h-10 w-10"
+              title="Tutorial Trust Score"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         {/* Level and Achievements Summary */}
