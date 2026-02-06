@@ -48,21 +48,31 @@
        return;
      }
  
-     logActivity(
-       { activityType, durationMinutes },
-       {
-         onSuccess: () => {
-           const creditsEarned = durationMinutes * 2;
-           toast.success(`¡Ganaste ${creditsEarned} créditos!`);
-           setOpen(false);
-           setActivityType("");
-           setDuration("");
-         },
-         onError: () => {
-           toast.error("Error al registrar la actividad");
-         },
-       }
-     );
+    logActivity(
+      { activityType, durationMinutes },
+      {
+        onSuccess: (result) => {
+          const { creditsEarned, baseCredits, multiplier, trustScore } = result;
+          
+          if (multiplier < 1) {
+            const penaltyPercent = Math.round((1 - multiplier) * 100);
+            toast.warning(
+              `Ganaste ${creditsEarned} créditos (${penaltyPercent}% penalización por trust score ${trustScore})`,
+              { duration: 5000 }
+            );
+          } else {
+            toast.success(`¡Ganaste ${creditsEarned} créditos!`);
+          }
+          
+          setOpen(false);
+          setActivityType("");
+          setDuration("");
+        },
+        onError: () => {
+          toast.error("Error al registrar la actividad");
+        },
+      }
+    );
    };
  
    return (
@@ -110,16 +120,25 @@
                onChange={(e) => setDuration(e.target.value)}
              />
            </div>
-           {duration && parseInt(duration) > 0 && (
-             <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-               <p className="text-sm text-muted-foreground">
-                 Ganarás{" "}
-                 <span className="font-bold text-primary">
-                   {parseInt(duration) * 2} créditos
-                 </span>
-               </p>
-             </div>
-           )}
+            {duration && parseInt(duration) > 0 && (
+              <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-sm text-muted-foreground">
+                    Créditos base:{" "}
+                    <span className="font-bold text-primary">
+                      {parseInt(duration) * 2} créditos
+                    </span>
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent/50 border border-accent">
+                  <p className="text-xs text-muted-foreground">
+                    ⚠️ Las actividades manuales sin wearable pueden recibir hasta{" "}
+                    <span className="font-medium text-accent-foreground">20% menos créditos</span>{" "}
+                    según el Trust Score. Conecta un wearable para maximizar tus créditos.
+                  </p>
+                </div>
+              </div>
+            )}
          </div>
          <DialogFooter>
            <Button variant="outline" onClick={() => setOpen(false)}>
