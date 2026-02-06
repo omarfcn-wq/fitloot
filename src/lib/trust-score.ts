@@ -255,3 +255,28 @@ export function getFlagExplanation(flag: string): string {
   
   return explanations[flag] ?? flag;
 }
+
+/**
+ * Credit multiplier based on trust score.
+ * - Score >= 70: 100% credits (trusted/verified)
+ * - Score >= 50: 50% credits (suspicious)
+ * - Score < 50: 25% credits (flagged)
+ */
+export function getCreditMultiplier(trustScore: number): number {
+  if (trustScore >= 70) return 1.0;
+  if (trustScore >= 50) return 0.5;
+  return 0.25;
+}
+
+/**
+ * Apply credit multiplier based on trust score.
+ * Returns the adjusted credits and the multiplier used.
+ */
+export function applyTrustScoreToCredits(
+  baseCredits: number,
+  trustScore: number
+): { adjustedCredits: number; multiplier: number } {
+  const multiplier = getCreditMultiplier(trustScore);
+  const adjustedCredits = Math.round(baseCredits * multiplier);
+  return { adjustedCredits, multiplier };
+}

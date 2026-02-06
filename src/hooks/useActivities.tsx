@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useCredits } from "./useCredits";
 import type { ActivityInsert } from "@/lib/supabase-types";
-import { calculateTrustScore } from "@/lib/trust-score";
+import { calculateTrustScore, applyTrustScoreToCredits } from "@/lib/trust-score";
 
 const CREDITS_PER_MINUTE = 2;
 
@@ -61,13 +61,18 @@ export function useActivities() {
         validationRules ?? undefined
       );
       
-      const creditsEarned = durationMinutes * CREDITS_PER_MINUTE;
+      // Calculate base credits and apply trust score multiplier
+      const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
+      const { adjustedCredits, multiplier } = applyTrustScoreToCredits(
+        baseCredits,
+        trustResult.score
+      );
       
       const activityData: ActivityInsert = {
         user_id: user.id,
         activity_type: activityType,
         duration_minutes: durationMinutes,
-        credits_earned: creditsEarned,
+        credits_earned: adjustedCredits,
         source: "manual",
         trust_score: trustResult.score,
         trust_flags: trustResult.flags,
@@ -76,9 +81,14 @@ export function useActivities() {
       const { error } = await supabase.from("activities").insert(activityData);
       if (error) throw error;
       
-      addCredits(creditsEarned);
+      addCredits(adjustedCredits);
       
-      return { creditsEarned, trustScore: trustResult.score };
+      return { 
+        creditsEarned: adjustedCredits, 
+        baseCredits,
+        multiplier,
+        trustScore: trustResult.score 
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities", user?.id] });
