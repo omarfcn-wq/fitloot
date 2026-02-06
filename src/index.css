@@ -115,6 +115,59 @@ All colors MUST be HSL.
   animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Trust Score Glow Animations */
+@keyframes glow-pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 10px hsl(142 76% 45% / 0.3), 0 0 20px hsl(142 76% 45% / 0.2), inset 0 0 10px hsl(142 76% 45% / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(142 76% 45% / 0.5), 0 0 40px hsl(142 76% 45% / 0.3), inset 0 0 15px hsl(142 76% 45% / 0.15);
+  }
+}
+
+@keyframes glow-pulse-blue {
+  0%, 100% {
+    box-shadow: 0 0 10px hsl(200 95% 50% / 0.3), 0 0 20px hsl(200 95% 50% / 0.2), inset 0 0 10px hsl(200 95% 50% / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(200 95% 50% / 0.5), 0 0 40px hsl(200 95% 50% / 0.3), inset 0 0 15px hsl(200 95% 50% / 0.15);
+  }
+}
+
+@keyframes glow-pulse-yellow {
+  0%, 100% {
+    box-shadow: 0 0 10px hsl(45 100% 50% / 0.3), 0 0 20px hsl(45 100% 50% / 0.2), inset 0 0 10px hsl(45 100% 50% / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(45 100% 50% / 0.5), 0 0 40px hsl(45 100% 50% / 0.3), inset 0 0 15px hsl(45 100% 50% / 0.15);
+  }
+}
+
+@keyframes glow-pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 10px hsl(0 84% 60% / 0.3), 0 0 20px hsl(0 84% 60% / 0.2), inset 0 0 10px hsl(0 84% 60% / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(0 84% 60% / 0.5), 0 0 40px hsl(0 84% 60% / 0.3), inset 0 0 15px hsl(0 84% 60% / 0.15);
+  }
+}
+
+.glow-pulse-verified {
+  animation: glow-pulse-green 2s ease-in-out infinite;
+}
+
+.glow-pulse-trusted {
+  animation: glow-pulse-blue 2s ease-in-out infinite;
+}
+
+.glow-pulse-suspicious {
+  animation: glow-pulse-yellow 2s ease-in-out infinite;
+}
+
+.glow-pulse-flagged {
+  animation: glow-pulse-red 2s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border;

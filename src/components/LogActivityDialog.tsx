@@ -165,10 +165,10 @@ export function LogActivityDialog() {
               {/* Trust Score Display */}
               <div className={cn(
                 "p-4 rounded-lg border-2 transition-all duration-300",
-                estimatedTrustInfo.category === "verified" && "border-green-500/50 bg-green-500/10",
-                estimatedTrustInfo.category === "trusted" && "border-blue-500/50 bg-blue-500/10",
-                estimatedTrustInfo.category === "suspicious" && "border-yellow-500/50 bg-yellow-500/10",
-                estimatedTrustInfo.category === "flagged" && "border-red-500/50 bg-red-500/10",
+                estimatedTrustInfo.category === "verified" && "border-green-500/50 bg-green-500/10 glow-pulse-verified",
+                estimatedTrustInfo.category === "trusted" && "border-blue-500/50 bg-blue-500/10 glow-pulse-trusted",
+                estimatedTrustInfo.category === "suspicious" && "border-yellow-500/50 bg-yellow-500/10 glow-pulse-suspicious",
+                estimatedTrustInfo.category === "flagged" && "border-red-500/50 bg-red-500/10 glow-pulse-flagged",
               )}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
