@@ -2,8 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { CreditDisplay } from "./CreditDisplay";
+import { LevelBadge } from "./LevelBadge";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Menu, Settings, ShieldAlert } from "lucide-react";
+import { useAchievements } from "@/hooks/useAchievements";
+import { LogOut, Menu, Settings, ShieldAlert, Trophy } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -17,6 +19,7 @@ import {
 export function Navbar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { levelInfo } = useAchievements();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin-nav", user?.id],
@@ -59,6 +62,12 @@ export function Navbar() {
                     Recompensas
                   </Button>
                 </Link>
+                <Link to="/achievements">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Trophy className="h-4 w-4" />
+                    Logros
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="ghost" size="sm" className="gap-2 text-primary">
@@ -68,6 +77,12 @@ export function Navbar() {
                   </Link>
                 )}
               </div>
+              <LevelBadge 
+                level={levelInfo.level} 
+                currentXP={levelInfo.currentLevelXP} 
+                nextLevelXP={levelInfo.nextLevelXP}
+                compact 
+              />
               <CreditDisplay />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -75,12 +90,16 @@ export function Navbar() {
                     <Menu className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-popover border-border">
                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/dashboard")}>
                     Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/rewards")}>
                     Recompensas
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/achievements")}>
+                    <Trophy className="mr-2 h-4 w-4" />
+                    Logros
                   </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/admin")}>
