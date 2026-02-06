@@ -21,7 +21,9 @@ export type Database = {
           created_at: string
           credits_earned: number
           duration_minutes: number
+          external_id: string | null
           id: string
+          provider: string | null
           source: string | null
           user_id: string
         }
@@ -31,7 +33,9 @@ export type Database = {
           created_at?: string
           credits_earned: number
           duration_minutes: number
+          external_id?: string | null
           id?: string
+          provider?: string | null
           source?: string | null
           user_id: string
         }
@@ -41,7 +45,9 @@ export type Database = {
           created_at?: string
           credits_earned?: number
           duration_minutes?: number
+          external_id?: string | null
           id?: string
+          provider?: string | null
           source?: string | null
           user_id?: string
         }
@@ -162,6 +168,51 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wearable_connections: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          provider: string
+          provider_user_id: string | null
+          refresh_token: string | null
+          scopes: string[] | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          provider: string
+          provider_user_id?: string | null
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          provider?: string
+          provider_user_id?: string | null
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
