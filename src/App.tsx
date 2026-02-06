@@ -12,6 +12,7 @@ import Achievements from "./pages/Achievements";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
+import ActivityHistory from "./pages/ActivityHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/history" element={<ActivityHistory />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
