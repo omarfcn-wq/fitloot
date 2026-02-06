@@ -227,6 +227,62 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Use service role for database operations
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Parse body
+    let provider: string | null = null;
+    let syncAll = false;
+    try {
+      const body = await req.json();
+      provider = body.provider;
+      syncAll = body.syncAll === true;
+    } catch {
+      // No body
+    }
+
+    // If syncAll is true (cron job), sync all active connections for all users
+    if (syncAll) {
+      console.log("Running scheduled sync for all users...");
+      
+      const { data: connections, error: connError } = await supabase
+        .from("wearable_connections")
+        .select("*")
+        .eq("is_active", true);
+
+      if (connError) {
+        throw connError;
+      }
+
+      const results: any = { usersProcessed: 0, totalCredits: 0, errors: [] };
+
+      for (const connection of connections || []) {
+        try {
+          if (connection.provider === "fitbit") {
+            const result = await syncFitbitActivities(connection, supabase);
+            results.totalCredits += result.creditsEarned;
+          } else if (connection.provider === "google_fit") {
+            const result = await syncGoogleFitActivities(connection, supabase);
+            results.totalCredits += result.creditsEarned;
+          }
+          results.usersProcessed++;
+        } catch (error) {
+          console.error(`Error syncing ${connection.provider} for user ${connection.user_id}:`, error);
+          results.errors.push({ userId: connection.user_id, provider: connection.provider, error: error.message });
+        }
+      }
+
+      console.log(`Sync complete: ${results.usersProcessed} connections processed, ${results.totalCredits} credits earned`);
+
+      return new Response(JSON.stringify({ success: true, results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Individual user sync - requires authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -251,23 +307,8 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-    
-    // Use service role for database operations
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
-    // Get body to check for specific provider
-    let provider: string | null = null;
-    try {
-      const body = await req.json();
-      provider = body.provider;
-    } catch {
-      // No body, sync all
-    }
-
-    // Get active connections
+    // Get active connections for this user
     const { data: connections, error: connError } = await supabase
       .from("wearable_connections")
       .select("*")
