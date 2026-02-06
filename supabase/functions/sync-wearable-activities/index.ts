@@ -145,6 +145,25 @@ function calculateTrustScore(activity: ActivityData, customRules?: ValidationRul
   return { score, flags };
 }
 
+// ============= CREDIT MULTIPLIER =============
+
+/**
+ * Credit multiplier based on trust score.
+ * - Score >= 70: 100% credits (trusted/verified)
+ * - Score >= 50: 50% credits (suspicious)
+ * - Score < 50: 25% credits (flagged)
+ */
+function getCreditMultiplier(trustScore: number): number {
+  if (trustScore >= 70) return 1.0;
+  if (trustScore >= 50) return 0.5;
+  return 0.25;
+}
+
+function applyTrustScoreToCredits(baseCredits: number, trustScore: number): number {
+  const multiplier = getCreditMultiplier(trustScore);
+  return Math.round(baseCredits * multiplier);
+}
+
 // ============= TOKEN REFRESH =============
 
 async function refreshFitbitToken(connection: any, supabase: any) {
@@ -261,7 +280,9 @@ async function syncFitbitActivities(connection: any, supabase: any, validationRu
       distanceMeters,
     }, validationRules);
 
-    const creditsEarned = durationMinutes * CREDITS_PER_MINUTE;
+    // Apply trust score multiplier to credits
+    const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
+    const creditsEarned = applyTrustScoreToCredits(baseCredits, trustResult.score);
 
     const { error: insertError } = await supabase.from("activities").insert({
       user_id: connection.user_id,
@@ -361,7 +382,9 @@ async function syncGoogleFitActivities(connection: any, supabase: any, validatio
       distanceMeters: distanceMeters ?? undefined,
     }, validationRules);
 
-    const creditsEarned = durationMinutes * CREDITS_PER_MINUTE;
+    // Apply trust score multiplier to credits
+    const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
+    const creditsEarned = applyTrustScoreToCredits(baseCredits, trustResult.score);
 
     const { error: insertError } = await supabase.from("activities").insert({
       user_id: connection.user_id,
