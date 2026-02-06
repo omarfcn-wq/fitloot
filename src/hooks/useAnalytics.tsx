@@ -26,6 +26,20 @@ export interface TrustFlagFrequency {
   label: string;
 }
 
+export interface PenaltyMetrics {
+  penalizedActivities: number;
+  nonPenalizedActivities: number;
+  penaltyPercentage: number;
+  totalBaseCredits: number;
+  totalAdjustedCredits: number;
+  creditsLost: number;
+  byMultiplier: {
+    multiplier: string;
+    count: number;
+    creditsLost: number;
+  }[];
+}
+
 export interface AnalyticsData {
   totalActivities: number;
   avgTrustScore: number;
@@ -37,6 +51,7 @@ export interface AnalyticsData {
   byActivity: TrustScoreByActivity[];
   flagFrequency: TrustFlagFrequency[];
   recentTrend: { date: string; avgScore: number; count: number }[];
+  penaltyMetrics: PenaltyMetrics;
 }
 
 const FLAG_LABELS: Record<string, string> = {
@@ -76,7 +91,7 @@ export function useAnalytics() {
       // Fetch all activities for analytics
       const { data: activities, error } = await supabase
         .from("activities")
-        .select("activity_type, trust_score, trust_flags, source, completed_at, credits_earned")
+        .select("activity_type, trust_score, trust_flags, source, completed_at, credits_earned, duration_minutes")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
@@ -96,6 +111,15 @@ export function useAnalytics() {
           byActivity: [],
           flagFrequency: [],
           recentTrend: [],
+          penaltyMetrics: {
+            penalizedActivities: 0,
+            nonPenalizedActivities: 0,
+            penaltyPercentage: 0,
+            totalBaseCredits: 0,
+            totalAdjustedCredits: 0,
+            creditsLost: 0,
+            byMultiplier: [],
+          },
         };
       }
 
@@ -220,6 +244,47 @@ export function useAnalytics() {
         }
       }
 
+      // Penalty metrics calculation
+      const CREDITS_PER_MINUTE = 2;
+      let totalBaseCredits = 0;
+      let totalAdjustedCredits = 0;
+      const multiplierCounts: Record<string, { count: number; creditsLost: number }> = {
+        "0.5": { count: 0, creditsLost: 0 },
+        "0.25": { count: 0, creditsLost: 0 },
+      };
+
+      allActivities.forEach((a) => {
+        const baseCredits = a.duration_minutes * CREDITS_PER_MINUTE;
+        const adjustedCredits = a.credits_earned;
+        totalBaseCredits += baseCredits;
+        totalAdjustedCredits += adjustedCredits;
+
+        if (adjustedCredits < baseCredits) {
+          const ratio = adjustedCredits / baseCredits;
+          if (ratio <= 0.3) {
+            multiplierCounts["0.25"].count++;
+            multiplierCounts["0.25"].creditsLost += baseCredits - adjustedCredits;
+          } else {
+            multiplierCounts["0.5"].count++;
+            multiplierCounts["0.5"].creditsLost += baseCredits - adjustedCredits;
+          }
+        }
+      });
+
+      const penalizedActivities = multiplierCounts["0.5"].count + multiplierCounts["0.25"].count;
+      const penaltyMetrics: PenaltyMetrics = {
+        penalizedActivities,
+        nonPenalizedActivities: totalActivities - penalizedActivities,
+        penaltyPercentage: Math.round((penalizedActivities / totalActivities) * 100),
+        totalBaseCredits,
+        totalAdjustedCredits,
+        creditsLost: totalBaseCredits - totalAdjustedCredits,
+        byMultiplier: [
+          { multiplier: "0.5", ...multiplierCounts["0.5"] },
+          { multiplier: "0.25", ...multiplierCounts["0.25"] },
+        ].filter((m) => m.count > 0),
+      };
+
       return {
         totalActivities,
         avgTrustScore,
@@ -231,6 +296,7 @@ export function useAnalytics() {
         byActivity,
         flagFrequency,
         recentTrend,
+        penaltyMetrics,
       };
     },
     enabled: isAdmin === true,

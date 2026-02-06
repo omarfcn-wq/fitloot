@@ -9,6 +9,7 @@ import { TrustBySourceChart } from "@/components/analytics/TrustBySourceChart";
 import { TrustByActivityChart } from "@/components/analytics/TrustByActivityChart";
 import { TrustTrendChart } from "@/components/analytics/TrustTrendChart";
 import { FlagFrequencyChart } from "@/components/analytics/FlagFrequencyChart";
+import { PenaltyMetricsChart } from "@/components/analytics/PenaltyMetricsChart";
 import {
   Loader2,
   BarChart3,
@@ -17,6 +18,7 @@ import {
   AlertTriangle,
   Activity,
   TrendingUp,
+  Coins,
 } from "lucide-react";
 
 export default function Analytics() {
@@ -179,6 +181,22 @@ export default function Analytics() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Penalty Metrics */}
+        <Card className="bg-card border-border mb-6">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">Métricas de Penalización</CardTitle>
+            </div>
+            <CardDescription>
+              Impacto del sistema VDC en la economía de créditos: actividades penalizadas y créditos retenidos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PenaltyMetricsChart data={analytics?.penaltyMetrics ?? null} />
+          </CardContent>
+        </Card>
 
         {/* Flags Chart */}
         <Card className="bg-card border-border">
