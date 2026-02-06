@@ -3,10 +3,11 @@ import { Navbar } from "@/components/Navbar";
 import { RewardCard } from "@/components/RewardCard";
 import { useRewards } from "@/hooks/useRewards";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Gift, Filter } from "lucide-react";
+import { Loader2, Gift, Filter, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const CATEGORIES = [
@@ -23,10 +24,15 @@ export default function Rewards() {
   const { user } = useAuth();
   const { rewards, isLoading, redeemReward, isRedeeming, canAfford } = useRewards();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredRewards = selectedCategory === "all" 
-    ? rewards 
-    : rewards.filter(r => r.category === selectedCategory);
+  const filteredRewards = rewards.filter((r) => {
+    const matchesCategory = selectedCategory === "all" || r.category === selectedCategory;
+    const matchesSearch = searchQuery === "" || 
+      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const handleRedeem = (reward: typeof rewards[0]) => {
     if (!user) {
@@ -67,6 +73,26 @@ export default function Rewards() {
           </div>
         )}
 
+        {/* Search Input */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Buscar recompensas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10 bg-card border-border"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
         {/* Category Filters */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
@@ -99,23 +125,41 @@ export default function Rewards() {
           <div className="text-center py-16">
             <Gift className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
             <p className="text-xl text-muted-foreground">
-              {selectedCategory === "all" 
-                ? "No hay recompensas disponibles" 
-                : "No hay recompensas en esta categoría"}
+              {searchQuery 
+                ? `No se encontraron recompensas para "${searchQuery}"`
+                : selectedCategory === "all" 
+                  ? "No hay recompensas disponibles" 
+                  : "No hay recompensas en esta categoría"}
             </p>
+            {searchQuery && (
+              <Button 
+                variant="link" 
+                onClick={() => setSearchQuery("")}
+                className="mt-2"
+              >
+                Limpiar búsqueda
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRewards.map((reward) => (
-              <RewardCard
-                key={reward.id}
-                reward={reward}
-                canAfford={user ? canAfford(reward.credits_cost) : false}
-                onRedeem={() => handleRedeem(reward)}
-                isRedeeming={isRedeeming}
-              />
-            ))}
-          </div>
+          <>
+            {searchQuery && (
+              <p className="text-sm text-muted-foreground mb-4">
+                {filteredRewards.length} resultado{filteredRewards.length !== 1 ? "s" : ""} para "{searchQuery}"
+              </p>
+            )}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRewards.map((reward) => (
+                <RewardCard
+                  key={reward.id}
+                  reward={reward}
+                  canAfford={user ? canAfford(reward.credits_cost) : false}
+                  onRedeem={() => handleRedeem(reward)}
+                  isRedeeming={isRedeeming}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>
