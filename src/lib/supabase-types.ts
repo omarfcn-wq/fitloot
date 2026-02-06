@@ -7,6 +7,7 @@ export type Redemption = Database["public"]["Tables"]["redemptions"]["Row"];
 export type Achievement = Database["public"]["Tables"]["achievements"]["Row"];
 export type UserAchievement = Database["public"]["Tables"]["user_achievements"]["Row"];
 export type UserLevel = Database["public"]["Tables"]["user_levels"]["Row"];
+export type ActivityValidationRule = Database["public"]["Tables"]["activity_validation_rules"]["Row"];
 
 export type ActivityInsert = Database["public"]["Tables"]["activities"]["Insert"];
 export type RedemptionInsert = Database["public"]["Tables"]["redemptions"]["Insert"];
