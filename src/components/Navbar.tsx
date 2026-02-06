@@ -1,15 +1,16 @@
- import { Link, useNavigate } from "react-router-dom";
- import { Button } from "@/components/ui/button";
- import { Logo } from "./Logo";
- import { CreditDisplay } from "./CreditDisplay";
- import { useAuth } from "@/hooks/useAuth";
- import { LogOut, User, Menu } from "lucide-react";
- import {
-   DropdownMenu,
-   DropdownMenuContent,
-   DropdownMenuItem,
-   DropdownMenuTrigger,
- } from "@/components/ui/dropdown-menu";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Logo } from "./Logo";
+import { CreditDisplay } from "./CreditDisplay";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, Menu, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
  
  export function Navbar() {
    const { user, signOut } = useAuth();
@@ -49,18 +50,23 @@
                      <Menu className="h-4 w-4" />
                    </Button>
                  </DropdownMenuTrigger>
-                 <DropdownMenuContent align="end">
-                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/dashboard")}>
-                     Dashboard
-                   </DropdownMenuItem>
-                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/rewards")}>
-                     Recompensas
-                   </DropdownMenuItem>
-                   <DropdownMenuItem onClick={handleSignOut}>
-                     <LogOut className="mr-2 h-4 w-4" />
-                     Cerrar sesión
-                   </DropdownMenuItem>
-                 </DropdownMenuContent>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/rewards")}>
+                      Recompensas
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/settings")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Configuración
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Cerrar sesión
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                </DropdownMenu>
              </>
            ) : (

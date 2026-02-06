@@ -1,1 +1,19 @@
 project_id = "proapfsdevpujjyudndh"
+
+[functions.fitbit-auth]
+verify_jwt = false
+
+[functions.fitbit-callback]
+verify_jwt = false
+
+[functions.google-fit-auth]
+verify_jwt = false
+
+[functions.google-fit-callback]
+verify_jwt = false
+
+[functions.sync-wearable-activities]
+verify_jwt = false
+
+[functions.disconnect-wearable]
+verify_jwt = false
