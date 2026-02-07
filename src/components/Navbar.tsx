@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { CreditDisplay } from "./CreditDisplay";
 import { LevelBadge } from "./LevelBadge";
+import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievements } from "@/hooks/useAchievements";
 import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History } from "lucide-react";
@@ -91,6 +92,7 @@ export function Navbar() {
                   </>
                 )}
               </div>
+              <NotificationBell />
               <LevelBadge 
                 level={levelInfo.level} 
                 currentXP={levelInfo.currentLevelXP} 
