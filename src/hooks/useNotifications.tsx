@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useNotificationAlerts, requestNotificationPermission } from "./useNotificationAlerts";
 
 export interface Notification {
   id: string;
@@ -18,6 +19,13 @@ export interface Notification {
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { triggerAlert, markLoaded } = useNotificationAlerts();
+  const prevCountRef = useRef<number | null>(null);
+
+  // Request browser notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications", user?.id],
@@ -36,6 +44,19 @@ export function useNotifications() {
     },
     enabled: !!user,
   });
+
+  // Detect new notifications and trigger alerts
+  useEffect(() => {
+    const currentCount = notifications.length;
+    if (prevCountRef.current !== null && currentCount > prevCountRef.current) {
+      const newest = notifications[0];
+      if (newest) {
+        triggerAlert(newest.title, newest.message);
+      }
+    }
+    prevCountRef.current = currentCount;
+    markLoaded();
+  }, [notifications, triggerAlert, markLoaded]);
 
   // Realtime subscription
   useEffect(() => {
