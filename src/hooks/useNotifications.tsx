@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -34,8 +35,32 @@ export function useNotifications() {
       return data as Notification[];
     },
     enabled: !!user,
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`notifications-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
