@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import ActivityHistory from "./pages/ActivityHistory";
+import Referrals from "./pages/Referrals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/history" element={<ActivityHistory />} />
+            <Route path="/referrals" element={<Referrals />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

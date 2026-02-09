@@ -6,7 +6,7 @@ import { LevelBadge } from "./LevelBadge";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievements } from "@/hooks/useAchievements";
-import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History } from "lucide-react";
+import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -75,6 +75,12 @@ export function Navbar() {
                     Historial
                   </Button>
                 </Link>
+                <Link to="/referrals">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Referidos
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <>
                     <Link to="/analytics">
@@ -120,8 +126,12 @@ export function Navbar() {
                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/history")}>
                     <History className="mr-2 h-4 w-4" />
                     Historial
-                  </DropdownMenuItem>
-                  {isAdmin && (
+                   </DropdownMenuItem>
+                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/referrals")}>
+                     <UserPlus className="mr-2 h-4 w-4" />
+                     Referidos
+                   </DropdownMenuItem>
+                   {isAdmin && (
                     <>
                       <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/analytics")}>
                         <BarChart3 className="mr-2 h-4 w-4" />
