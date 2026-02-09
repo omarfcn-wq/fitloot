@@ -14,6 +14,7 @@ import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
 import ActivityHistory from "./pages/ActivityHistory";
 import Referrals from "./pages/Referrals";
+import WeeklyMetrics from "./pages/WeeklyMetrics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/history" element={<ActivityHistory />} />
             <Route path="/referrals" element={<Referrals />} />
+            <Route path="/weekly" element={<WeeklyMetrics />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
