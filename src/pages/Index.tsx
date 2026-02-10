@@ -174,7 +174,7 @@
          <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
            <Logo size="sm" />
            <p className="text-sm text-muted-foreground">
-             © 2025 FitLoot. Gamificación saludable.
+             © 2026 FitLoot. Gamificación saludable.
            </p>
          </div>
        </footer>
