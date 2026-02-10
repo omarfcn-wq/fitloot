@@ -7,6 +7,7 @@ import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievements } from "@/hooks/useAchievements";
 import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -112,6 +113,7 @@ export function Navbar() {
                 compact 
               />
               <CreditDisplay />
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon">
@@ -166,7 +168,8 @@ export function Navbar() {
               </DropdownMenu>
             </>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <ThemeToggle />
               <Link to="/auth">
                 <Button variant="ghost" size="sm">
                   Iniciar sesión
