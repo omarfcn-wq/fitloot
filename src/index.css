@@ -8,51 +8,51 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 20% 4%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 100%;
+    --foreground: 220 20% 10%;
 
-    --card: 220 18% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 142 76% 45%;
-    --primary-foreground: 220 20% 4%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 263 70% 58%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 263 60% 50%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 16% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 40%;
 
-    --accent: 263 70% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 263 60% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 16% 18%;
-    --input: 220 16% 14%;
-    --ring: 142 76% 45%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 142 76% 36%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 18% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 142 76% 45%;
-    --sidebar-primary-foreground: 220 20% 4%;
-    --sidebar-accent: 220 16% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 16% 18%;
-    --sidebar-ring: 142 76% 45%;
-    
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 13% 87%;
+    --sidebar-ring: 142 76% 36%;
+
     /* Custom FitLoot colors */
-    --neon-green: 142 76% 45%;
-    --neon-purple: 263 70% 58%;
-    --neon-blue: 200 95% 50%;
-    --gaming-dark: 220 20% 4%;
-    --gaming-card: 220 18% 8%;
+    --neon-green: 142 76% 36%;
+    --neon-purple: 263 60% 50%;
+    --neon-blue: 200 95% 45%;
+    --gaming-dark: 220 20% 96%;
+    --gaming-card: 0 0% 98%;
   }
 
   .dark {
