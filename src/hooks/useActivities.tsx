@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useCredits } from "./useCredits";
 import type { ActivityInsert } from "@/lib/supabase-types";
 import { calculateTrustScore, applyTrustScoreToCredits } from "@/lib/trust-score";
 
@@ -9,7 +8,6 @@ const CREDITS_PER_MINUTE = 2;
 
 export function useActivities() {
   const { user } = useAuth();
-  const { addCredits } = useCredits();
   const queryClient = useQueryClient();
 
   const { data: activities, isLoading } = useQuery({
@@ -56,7 +54,6 @@ export function useActivities() {
           activityType,
           durationMinutes,
           source: "manual",
-          // No biometric data for manual entries
         },
         validationRules ?? undefined
       );
@@ -68,20 +65,21 @@ export function useActivities() {
         trustResult.score
       );
       
-      const activityData: ActivityInsert = {
-        user_id: user.id,
-        activity_type: activityType,
-        duration_minutes: durationMinutes,
-        credits_earned: adjustedCredits,
-        source: "manual",
-        trust_score: trustResult.score,
-        trust_flags: trustResult.flags,
-      };
+      // Use SECURITY DEFINER RPC instead of direct insert
+      const { data, error } = await supabase.rpc("log_activity", {
+        p_activity_type: activityType,
+        p_duration_minutes: durationMinutes,
+        p_credits_earned: adjustedCredits,
+        p_trust_score: trustResult.score,
+        p_trust_flags: trustResult.flags,
+        p_source: "manual",
+      });
       
-      const { error } = await supabase.from("activities").insert(activityData);
       if (error) throw error;
-      
-      addCredits(adjustedCredits);
+      const result = data as unknown as { success: boolean; error?: string };
+      if (!result.success) {
+        throw new Error(result.error || "Error al registrar actividad");
+      }
       
       return { 
         creditsEarned: adjustedCredits, 
@@ -92,7 +90,7 @@ export function useActivities() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities", user?.id] });
-      // Invalidate user stats to trigger achievement check
+      queryClient.invalidateQueries({ queryKey: ["credits", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["user_stats", user?.id] });
     },
   });
