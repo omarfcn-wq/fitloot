@@ -458,6 +458,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      earn_achievement: { Args: { p_achievement_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -466,6 +467,17 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      log_activity: {
+        Args: {
+          p_activity_type: string
+          p_credits_earned: number
+          p_duration_minutes: number
+          p_source?: string
+          p_trust_flags?: string[]
+          p_trust_score?: number
+        }
+        Returns: Json
+      }
       process_referral: { Args: { p_referral_code: string }; Returns: Json }
     }
     Enums: {

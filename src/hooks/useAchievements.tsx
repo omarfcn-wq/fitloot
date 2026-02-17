@@ -104,40 +104,25 @@ export function useAchievements() {
     mutationFn: async (achievementId: string) => {
       if (!user) throw new Error("No user");
       
-      const achievement = achievements?.find(a => a.id === achievementId);
-      if (!achievement) throw new Error("Achievement not found");
-
-      // Insert user achievement
-      const { error: achievementError } = await supabase
-        .from("user_achievements")
-        .insert({ user_id: user.id, achievement_id: achievementId });
+      // Use SECURITY DEFINER RPC instead of direct insert
+      const { data, error } = await supabase.rpc("earn_achievement", {
+        p_achievement_id: achievementId,
+      });
       
-      if (achievementError) {
-        if (achievementError.code === "23505") return; // Already earned
-        throw achievementError;
+      if (error) throw error;
+      const result = data as unknown as { success: boolean; error?: string; xp_reward?: number; new_xp?: number; new_level?: number };
+      if (!result.success) {
+        if (result.error === 'Logro ya obtenido') return null; // Already earned, silent
+        throw new Error(result.error || "Error al obtener logro");
       }
 
-      // Update XP
-      const currentXP = userLevel?.current_xp || 0;
-      const newXP = currentXP + achievement.xp_reward;
-      const { level } = calculateLevelFromXP(newXP);
-
-      const { error: levelError } = await supabase
-        .from("user_levels")
-        .upsert({ 
-          user_id: user.id, 
-          current_xp: newXP, 
-          current_level: level 
-        }, { onConflict: "user_id" });
-
-      if (levelError) throw levelError;
-
-      return { achievement, newXP, level };
+      const achievement = achievements?.find(a => a.id === achievementId);
+      return { achievement, newXP: result.new_xp, level: result.new_level, xpReward: result.xp_reward };
     },
     onSuccess: (data) => {
-      if (data) {
+      if (data?.achievement) {
         toast.success(`🏆 ¡Logro desbloqueado: ${data.achievement.name}!`, {
-          description: `+${data.achievement.xp_reward} XP`,
+          description: `+${data.xpReward} XP`,
         });
         queryClient.invalidateQueries({ queryKey: ["user_achievements", user?.id] });
         queryClient.invalidateQueries({ queryKey: ["user_level", user?.id] });
