@@ -1,4 +1,3 @@
-typescript
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -8,13 +7,11 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -26,20 +23,11 @@ serve(async (req) => {
       throw new Error('User ID is required');
     }
 
-    // Fitbit OAuth 2.0 configuration
-    const fitbitConfig = {
-      clientId: '23V32S',
-      clientSecret: '326f023f9d3b452d371f795a9aeac237',
-      redirectUri: 'https://fitloot.lovable.app/api/auth/fitbit/callback',
-      scope: 'activity heartrate profile sleep weight',
-      responseType: 'code',
-      authUrl: 'https://www.fitbit.com/oauth2/authorize'
-    };
+    const clientId = Deno.env.get('FITBIT_CLIENT_ID') ?? '';
+    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/fitbit-callback`;
 
-    // Generate state parameter for security (CSRF protection)
     const state = crypto.randomUUID();
-    
-    // Store state in database for verification later
+
     const { error: stateError } = await supabaseClient
       .from('oauth_states')
       .insert({
@@ -47,7 +35,7 @@ serve(async (req) => {
         user_id: userId,
         provider: 'fitbit',
         redirect_url: redirectUrl,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
       });
 
     if (stateError) {
@@ -55,41 +43,25 @@ serve(async (req) => {
       throw new Error('Failed to initiate OAuth flow');
     }
 
-    // Build Fitbit authorization URL
     const authParams = new URLSearchParams({
-      client_id: fitbitConfig.clientId,
-      response_type: fitbitConfig.responseType,
-      redirect_uri: fitbitConfig.redirectUri,
-      scope: fitbitConfig.scope,
+      client_id: clientId,
+      response_type: 'code',
+      redirect_uri: redirectUri,
+      scope: 'activity heartrate profile sleep weight',
       state: state
     });
 
-    const authUrl = `${fitbitConfig.authUrl}?${authParams.toString()}`;
+    const authUrl = `https://www.fitbit.com/oauth2/authorize?${authParams.toString()}`;
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        authUrl,
-        state
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
+      JSON.stringify({ success: true, authUrl, state }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
     );
-
   } catch (error: any) {
     console.error('Fitbit auth error:', error);
-    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      },
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
     );
   }
 });

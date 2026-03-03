@@ -66,7 +66,7 @@ export const useWearables = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setConnections(data || []);
+      setConnections((data || []) as WearableConnection[]);
     } catch (error: any) {
       console.error('Error loading connections:', error);
       toast.error('Error loading device connections');
@@ -109,7 +109,7 @@ export const useWearables = () => {
       }
     } catch (error: any) {
       console.error('Connection error:', error);
-      toast.error(Failed to connect ${provider}: ${error.message});
+      toast.error(`Failed to connect ${provider}: ${error.message}`);
     } finally {
       setIsConnecting(false);
     }
