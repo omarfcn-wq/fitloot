@@ -134,8 +134,8 @@ async function syncFitbitActivities(connection: any, supabaseClient: any) {
         .insert({
           user_id: connection.user_id,
           provider: 'fitbit',
-          provider_activity_id: activity.logId?.toString(),typescript
-         activity_type: activity.activityName || 'Unknown',
+          provider_activity_id: activity.logId?.toString(),
+          activity_type: activity.activityName || 'Unknown',
           duration_minutes: durationMinutes,
           calories_burned: activity.calories || 0,
           distance_km: activity.distance ? parseFloat(activity.distance) : null,
