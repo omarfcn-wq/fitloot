@@ -1,98 +1,121 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-Deno.serve(async (req) => {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const url = new URL(req.url);
-    const code = url.searchParams.get("code");
-    const state = url.searchParams.get("state");
-    const error = url.searchParams.get("error");
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+    const error = url.searchParams.get('error');
 
-    // Get the frontend URL from environment or use default
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://id-preview--41e2b241-b160-4f6e-bb04-3c696c5f152a.lovable.app";
-
+    // Handle user denial
     if (error) {
-      return Response.redirect(`${frontendUrl}/settings?error=fitbit_denied`);
+      return Response.redirect(`https://fitloot.lovable.app/settings?error=fitbit_denied`);
     }
 
     if (!code || !state) {
-      return Response.redirect(`${frontendUrl}/settings?error=missing_params`);
+      return Response.redirect(`https://fitloot.lovable.app/settings?error=missing_params`);
     }
 
-    let userId: string;
-    try {
-      const decoded = JSON.parse(atob(state));
-      userId = decoded.userId;
-    } catch {
-      return Response.redirect(`${frontendUrl}/settings?error=invalid_state`);
+    // Verify state parameter
+    const { data: stateData, error: stateError } = await supabaseClient
+      .from('oauth_states')
+      .select('user_id, redirect_url')
+      .eq('state', state)
+      .eq('provider', 'fitbit')
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    if (stateError || !stateData) {
+      return Response.redirect(`https://fitloot.lovable.app/settings?error=invalid_state`);
     }
 
-    const clientId = Deno.env.get("FITBIT_CLIENT_ID");
-    const clientSecret = Deno.env.get("FITBIT_CLIENT_SECRET");
-    const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/fitbit-callback`;
+    const userId = stateData.user_id;
 
-    // Exchange code for tokens
-    const tokenResponse = await fetch("https://api.fitbit.com/oauth2/token", {
-      method: "POST",
+    // Exchange authorization code for access token
+    const fitbitConfig = {
+      clientId: '23V32S',
+      clientSecret: '326f023f9d3b452d371f795a9aeac237',
+      redirectUri: 'https://fitloot.lovable.app/api/auth/fitbit/callback',
+      tokenUrl: 'https://api.fitbit.com/oauth2/token'
+    };
+
+    const tokenParams = new URLSearchParams({
+      client_id: fitbitConfig.clientId,
+      grant_type: 'authorization_code',
+      redirect_uri: fitbitConfig.redirectUri,
+      code: code
+    });
+
+    const tokenResponse = await fetch(fitbitConfig.tokenUrl, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+        'Authorization': `Basic ${btoa(`${fitbitConfig.clientId}:${fitbitConfig.clientSecret}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri,
-      }),
+      body: tokenParams.toString()
     });
 
     if (!tokenResponse.ok) {
-      console.error("Token exchange failed:", await tokenResponse.text());
-      return Response.redirect(`${frontendUrl}/settings?error=token_exchange_failed`);
+      const errorText = await tokenResponse.text();
+      console.error('Fitbit token exchange failed:', errorText);
+      return Response.redirect(`https://fitloot.lovable.app/settings?error=token_exchange_failed`);
     }
 
-    const tokens = await tokenResponse.json();
+    const tokenData = await tokenResponse.json();
 
-    // Get user profile from Fitbit
-    const profileResponse = await fetch("https://api.fitbit.com/1/user/-/profile.json", {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
+    // Calculate token expiry
+    const expiresAt = tokenData.expires_in ? 
+      new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString() : null;
+    
+    // Store or update connection in database
+    const connectionData = {
+      user_id: userId,
+      provider: 'fitbit',
+      provider_user_id: tokenData.user_id || null,
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token || null,
+      token_expires_at: expiresAt,
+      scopes: tokenData.scope ? tokenData.scope.split(' ') : null,
+      is_active: true,
+      updated_at: new Date().toISOString()
+    };
 
-    let providerUserId = null;
-    if (profileResponse.ok) {
-      const profile = await profileResponse.json();
-      providerUserId = profile.user?.encodedId;
+    // Upsert connection (insert or update if exists)
+    const { error: dbError } = await supabaseClient
+      .from('wearable_connections')
+      .upsert(connectionData, {
+        onConflict: 'user_id,provider'
+      });
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      return Response.redirect(`https://fitloot.lovable.app/settings?error=database_error`);
     }
 
-    // Store connection in database
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // Clean up OAuth state
+    await supabaseClient
+      .from('oauth_states')
+      .delete()
+      .eq('state', state);
 
-    const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+    // Redirect back to app with success
+    return Response.redirect(`https://fitloot.lovable.app/settings?success=fitbit_connected`);
 
-    const { error: upsertError } = await supabase.from("wearable_connections").upsert(
-      {
-        user_id: userId,
-        provider: "fitbit",
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        token_expires_at: expiresAt,
-        provider_user_id: providerUserId,
-        scopes: tokens.scope?.split(" ") || [],
-        is_active: true,
-      },
-      { onConflict: "user_id,provider" }
-    );
-
-    if (upsertError) {
-      console.error("Database error:", upsertError);
-      return Response.redirect(`${frontendUrl}/settings?error=database_error`);
-    }
-
-    return Response.redirect(`${frontendUrl}/settings?success=fitbit_connected`);
-  } catch (error) {
-    console.error("Error in fitbit-callback:", error);
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://id-preview--41e2b241-b160-4f6e-bb04-3c696c5f152a.lovable.app";
-    return Response.redirect(`${frontendUrl}/settings?error=internal_error`);
-  }
-});
+  } catch (error: any) {
+    console.error('Fitbit callback error:', error);
