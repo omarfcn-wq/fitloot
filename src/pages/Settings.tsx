@@ -115,8 +115,8 @@ export default function Settings() {
   };
 
   if (authLoading) {
-    return (typescript
-     <div className="min-h-screen flex items-center justify-center bg-background">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );

@@ -1,4 +1,3 @@
-typescript
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -24,7 +23,6 @@ serve(async (req) => {
       throw new Error('Provider and userId are required');
     }
 
-    // Get the connection to revoke tokens if needed
     const { data: connection } = await supabaseClient
       .from('wearable_connections')
       .select('*')
@@ -32,36 +30,31 @@ serve(async (req) => {
       .eq('provider', provider)
       .single();
 
-    // Revoke tokens at provider level (optional - depends on provider)
     if (connection?.access_token) {
       try {
         if (provider === 'fitbit') {
-          // Revoke Fitbit token
+          const clientId = Deno.env.get('FITBIT_CLIENT_ID') ?? '';
+          const clientSecret = Deno.env.get('FITBIT_CLIENT_SECRET') ?? '';
           await fetch('https://api.fitbit.com/oauth2/revoke', {
             method: 'POST',
             headers: {
-              'Authorization': `Basic ${btoa('23V32S:326f023f9d3b452d371f795a9aeac237')}`,
+              'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
               'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: `token=${connection.access_token}`
           });
         } else if (provider === 'google_fit') {
-          // Revoke Google token
           await fetch('https://oauth2.googleapis.com/revoke', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `token=${connection.access_token}`
           });
         }
       } catch (revokeError) {
         console.warn('Failed to revoke token at provider:', revokeError);
-        // Continue with local disconnect even if provider revocation fails
       }
     }
 
-    // Deactivate connection in our database
     const { error: updateError } = await supabaseClient
       .from('wearable_connections')
       .update({
@@ -74,33 +67,18 @@ serve(async (req) => {
       .eq('provider', provider);
 
     if (updateError) {
-      console.error('Error deactivating connection:', updateError);
       throw new Error('Failed to disconnect device');
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: `${provider} disconnected successfully`
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
+      JSON.stringify({ success: true, message: `${provider} disconnected successfully` }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
     );
-
   } catch (error: any) {
     console.error('Disconnect error:', error);
-    
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      },
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
     );
   }
 });
