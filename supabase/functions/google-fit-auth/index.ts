@@ -1,75 +1,95 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { userId, redirectUrl } = await req.json();
+
+    if (!userId) {
+      throw new Error('User ID is required');
     }
 
-    const userId = claimsData.claims.sub;
-    const clientId = Deno.env.get("GOOGLE_FIT_CLIENT_ID");
+    // Google Fit OAuth 2.0 configuration
+    const googleConfig = {
+      clientId: '815879431098-tuano0duu5dqjt94eevbd3tourvi69oa.apps.googleusercontent.com',
+      clientSecret: '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',
+      redirectUri: 'https://fitloot.lovable.app/api/auth/google-fit/callback',
+      scope: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.location.read',
+      responseType: 'code',
+      authUrl: 'https://accounts.google.com/o/oauth2/auth'
+    };
+
+    // Generate state parameter for security
+    const state = crypto.randomUUID();
     
-    if (!clientId) {
-      return new Response(JSON.stringify({ error: "Google Fit not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Store state in database for verification later
+    const { error: stateError } = await supabaseClient
+      .from('oauth_states')
+      .insert({
+        state,
+        user_id: userId,
+        provider: 'google_fit',
+        redirect_url: redirectUrl,
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
       });
+
+    if (stateError) {
+      console.error('Error storing OAuth state:', stateError);
+      throw new Error('Failed to initiate OAuth flow');
     }
 
-    const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/google-fit-callback`;
-    const scopes = [
-      "https://www.googleapis.com/auth/fitness.activity.read",
-      "https://www.googleapis.com/auth/fitness.heart_rate.read",
-      "https://www.googleapis.com/auth/fitness.sleep.read",
-      "profile",
-    ].join(" ");
-    const state = btoa(JSON.stringify({ userId }));
-
-    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    authUrl.searchParams.set("response_type", "code");
-    authUrl.searchParams.set("client_id", clientId);
-    authUrl.searchParams.set("redirect_uri", redirectUri);
-    authUrl.searchParams.set("scope", scopes);
-    authUrl.searchParams.set("state", state);
-    authUrl.searchParams.set("access_type", "offline");
-    authUrl.searchParams.set("prompt", "consent");
-
-    return new Response(JSON.stringify({ url: authUrl.toString() }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Build Google authorization URL
+    const authParams = new URLSearchParams({
+      client_id: googleConfig.clientId,
+      response_type: googleConfig.responseType,
+      redirect_uri: googleConfig.redirectUri,
+      scope: googleConfig.scope,
+      state: state,
+      access_type: 'offline', // To get refresh token
+      prompt: 'consent' // Force consent screen to ensure refresh token
     });
-  } catch (error) {
-    console.error("Error in google-fit-auth:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+
+    const authUrl = `${googleConfig.authUrl}?${authParams.toString()}`;
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        authUrl,
+        state
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      },
+    );
+
+  } catch (error: any) {
+    console.error('Google Fit auth error:', error);
+    
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      },
+    );
   }
 });
