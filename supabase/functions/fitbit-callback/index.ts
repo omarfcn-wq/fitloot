@@ -118,4 +118,7 @@ serve(async (req) => {
     return Response.redirect(`https://fitloot.lovable.app/settings?success=fitbit_connected`);
 
   } catch (error: any) {
-    console.error('Fitbit callback error:', error);
+    console.error('Fitbit callback error:', error);typescript
+   return Response.redirect(`https://fitloot.lovable.app/settings?error=internal_error`);
+  }
+});
