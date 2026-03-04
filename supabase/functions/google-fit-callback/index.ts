@@ -1,18 +1,21 @@
-```typescript
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};serve(async (req) => {
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
+      supabaseUrl,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
@@ -23,11 +26,11 @@ const corsHeaders = {
 
     // Handle user denial
     if (error) {
-      return Response.redirect(https://fitloot.lovable.app/settings?error=google_denied);
+      return Response.redirect('https://fitloot.lovable.app/settings?error=google_denied');
     }
 
     if (!code || !state) {
-      return Response.redirect(https://fitloot.lovable.app/settings?error=missing_params);
+      return Response.redirect('https://fitloot.lovable.app/settings?error=missing_params');
     }
 
     // Verify state parameter
@@ -40,61 +43,55 @@ const corsHeaders = {
       .single();
 
     if (stateError || !stateData) {
-      return Response.redirect(https://fitloot.lovable.app/settings?error=invalid_state);
+      return Response.redirect('https://fitloot.lovable.app/settings?error=invalid_state');
     }
 
     const userId = stateData.user_id;
 
-    // Exchange authorization code for access token
-    const googleConfig = {
-      clientId: '815879431098-tuano0duu5dqjt94eevbd3tourvi69oa.apps.googleusercontent.com',
-      clientSecret: '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',
-      redirectUri: 'https://fitloot.lovable.app/api/auth/google-fit/callback',
-      tokenUrl: 'https://oauth2.googleapis.com/token'
-    };
+    const clientId = Deno.env.get('GOOGLE_FIT_CLIENT_ID') ?? '';
+    const clientSecret = Deno.env.get('GOOGLE_FIT_CLIENT_SECRET') ?? '';
+    const redirectUri = `${supabaseUrl}/functions/v1/google-fit-callback`;
 
+    // Exchange authorization code for access token
     const tokenParams = new URLSearchParams({
-      client_id: googleConfig.clientId,
-      client_secret: googleConfig.clientSecret,
+      client_id: clientId,
+      client_secret: clientSecret,
       grant_type: 'authorization_code',
-      redirect_uri: googleConfig.redirectUri,
+      redirect_uri: redirectUri,
       code: code
     });
 
-    const tokenResponse = await fetch(googleConfig.tokenUrl, {
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: tokenParams.toString()
     });
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error('Google token exchange failed:', errorText);
-      return Response.redirect(https://fitloot.lovable.app/settings?error=token_exchange_failed);
+      return Response.redirect('https://fitloot.lovable.app/settings?error=token_exchange_failed');
     }
 
     const tokenData = await tokenResponse.json();
 
-    // Get user info to extract Google user ID
+    // Get user info
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        'Authorization': Bearer ${tokenData.access_token}
-      }
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
     });
 
     let googleUserId = null;
     if (userInfoResponse.ok) {
       const userData = await userInfoResponse.json();
       googleUserId = userData.id || null;
+    } else {
+      await userInfoResponse.text(); // consume body
     }
 
-    // Calculate token expiry
-    const expiresAt = tokenData.expires_in ? 
-      new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString() : null;
-    
-    // Store or update connection in database
+    const expiresAt = tokenData.expires_in
+      ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
+      : null;
+
     const connectionData = {
       user_id: userId,
       provider: 'google_fit',
@@ -107,16 +104,13 @@ const corsHeaders = {
       updated_at: new Date().toISOString()
     };
 
-    // Upsert connection (insert or update if exists)
     const { error: dbError } = await supabaseClient
       .from('wearable_connections')
-      .upsert(connectionData, {
-        onConflict: 'user_id,provider'
-      });
+      .upsert(connectionData, { onConflict: 'user_id,provider' });
 
     if (dbError) {
       console.error('Database error:', dbError);
-      return Response.redirect(https://fitloot.lovable.app/settings?error=database_error);
+      return Response.redirect('https://fitloot.lovable.app/settings?error=database_error');
     }
 
     // Clean up OAuth state
@@ -125,12 +119,11 @@ const corsHeaders = {
       .delete()
       .eq('state', state);
 
-    // Redirect back to app with success
-    return Response.redirect(https://fitloot.lovable.app/settings?success=google_connected);
+    // Redirect back with success
+    return Response.redirect('https://fitloot.lovable.app/settings?success=google_connected');
 
-  } catch (error:any) {
-    console.error('Google Fit callback error:', error);
-    return Response.redirect(https://fitloot.lovable.app/settings?error=internal_error);
+  } catch (err: any) {
+    console.error('Google Fit callback error:', err);
+    return Response.redirect('https://fitloot.lovable.app/settings?error=internal_error');
   }
 });
-```
