@@ -42,6 +42,9 @@ export function LogActivityDialog() {
   const [activityType, setActivityType] = useState("");
   const [duration, setDuration] = useState("");
   const { logActivity, isLogging } = useActivities();
+  const { profile } = useProfile();
+
+  const effortInfo = getEffortMultiplier(profile?.weight_kg, profile?.height_cm);
 
   // Calculate estimated trust score in real-time
   const estimatedTrustInfo = useMemo(() => {
@@ -58,7 +61,8 @@ export function LogActivityDialog() {
 
     const display = getTrustScoreDisplay(result.score);
     const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
-    const { adjustedCredits, multiplier } = applyTrustScoreToCredits(baseCredits, result.score);
+    const { adjustedCredits: trustAdjusted, multiplier } = applyTrustScoreToCredits(baseCredits, result.score);
+    const finalCredits = Math.round(trustAdjusted * effortInfo.multiplier);
 
     return {
       score: result.score,
@@ -66,8 +70,8 @@ export function LogActivityDialog() {
       category: result.category,
       display,
       baseCredits,
-      adjustedCredits,
-      multiplier,
+      adjustedCredits: finalCredits,
+      trustMultiplier: multiplier,
     };
   }, [activityType, duration]);
 
