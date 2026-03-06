@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.disconnect-wearable]
 verify_jwt = false
+
+[functions.auto-sync-wearables]
+verify_jwt = false
