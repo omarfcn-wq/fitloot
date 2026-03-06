@@ -5,6 +5,7 @@ import { CreditDisplay } from "./CreditDisplay";
 import { LevelBadge } from "./LevelBadge";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
 import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
@@ -20,8 +21,11 @@ import {
  
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
   const { levelInfo } = useAchievements();
+
+  const displayName = profile?.name || user?.email?.split("@")[0] || "Usuario";
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin-nav", user?.id],
@@ -167,7 +171,7 @@ export function Navbar() {
                   )}
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Configuración
+                    {displayName}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
