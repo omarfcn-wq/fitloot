@@ -19,9 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useActivities } from "@/hooks/useActivities";
-import { Plus, Bike, Footprints, Dumbbell, Waves, Mountain, ShieldAlert, ShieldCheck, Shield, ShieldX, Info } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { Plus, Bike, Footprints, Dumbbell, Waves, Mountain, ShieldAlert, ShieldCheck, Shield, ShieldX, Info, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { calculateTrustScore, getTrustScoreDisplay, applyTrustScoreToCredits, getFlagExplanation } from "@/lib/trust-score";
+import { getEffortMultiplier } from "@/lib/effort-multiplier";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
