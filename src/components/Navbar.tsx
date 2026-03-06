@@ -5,6 +5,7 @@ import { CreditDisplay } from "./CreditDisplay";
 import { LevelBadge } from "./LevelBadge";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
 import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";

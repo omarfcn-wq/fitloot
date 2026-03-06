@@ -8,6 +8,7 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { LevelBadge } from "@/components/LevelBadge";
 import { TrustScoreTutorial } from "@/components/onboarding/TrustScoreTutorial";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useCredits } from "@/hooks/useCredits";
 import { useActivities } from "@/hooks/useActivities";
 import { useAchievements } from "@/hooks/useAchievements";
