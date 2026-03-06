@@ -19,9 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useActivities } from "@/hooks/useActivities";
-import { Plus, Bike, Footprints, Dumbbell, Waves, Mountain, ShieldAlert, ShieldCheck, Shield, ShieldX, Info } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { Plus, Bike, Footprints, Dumbbell, Waves, Mountain, ShieldAlert, ShieldCheck, Shield, ShieldX, Info, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { calculateTrustScore, getTrustScoreDisplay, applyTrustScoreToCredits, getFlagExplanation } from "@/lib/trust-score";
+import { getEffortMultiplier } from "@/lib/effort-multiplier";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +42,9 @@ export function LogActivityDialog() {
   const [activityType, setActivityType] = useState("");
   const [duration, setDuration] = useState("");
   const { logActivity, isLogging } = useActivities();
+  const { profile } = useProfile();
+
+  const effortInfo = getEffortMultiplier(profile?.weight_kg, profile?.height_cm);
 
   // Calculate estimated trust score in real-time
   const estimatedTrustInfo = useMemo(() => {
@@ -56,7 +61,8 @@ export function LogActivityDialog() {
 
     const display = getTrustScoreDisplay(result.score);
     const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
-    const { adjustedCredits, multiplier } = applyTrustScoreToCredits(baseCredits, result.score);
+    const { adjustedCredits: trustAdjusted, multiplier } = applyTrustScoreToCredits(baseCredits, result.score);
+    const finalCredits = Math.round(trustAdjusted * effortInfo.multiplier);
 
     return {
       score: result.score,
@@ -64,8 +70,8 @@ export function LogActivityDialog() {
       category: result.category,
       display,
       baseCredits,
-      adjustedCredits,
-      multiplier,
+      adjustedCredits: finalCredits,
+      trustMultiplier: multiplier,
     };
   }, [activityType, duration]);
 
@@ -243,25 +249,50 @@ export function LogActivityDialog() {
                 )}
               </div>
 
+              {/* Effort Multiplier Badge */}
+              {effortInfo.multiplier > 1 && (
+                <div className="p-3 rounded-lg border border-orange-500/30 bg-orange-500/10">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-orange-400" />
+                    <span className="text-sm font-medium text-orange-300">{effortInfo.label}</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3.5 w-3.5 text-orange-400/60" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs">Tu IMC ({effortInfo.bmi?.toFixed(1)}) indica mayor esfuerzo físico. Recibes un bonus de {effortInfo.multiplier}x en créditos.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              )}
+
               {/* Credits Preview */}
               <div className="p-3 rounded-lg bg-card border border-border">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Créditos estimados:</span>
                   <div className="flex items-center gap-2">
-                    {estimatedTrustInfo.multiplier < 1 && (
+                    {(estimatedTrustInfo.trustMultiplier < 1 || effortInfo.multiplier > 1) && (
                       <span className="text-xs text-muted-foreground line-through">
                         {estimatedTrustInfo.baseCredits}
                       </span>
                     )}
                     <span className={cn(
                       "text-lg font-bold",
-                      estimatedTrustInfo.multiplier < 1 ? "text-yellow-400" : "text-primary"
+                      effortInfo.multiplier > 1 ? "text-orange-400" : estimatedTrustInfo.trustMultiplier < 1 ? "text-yellow-400" : "text-primary"
                     )}>
                       {estimatedTrustInfo.adjustedCredits}
                     </span>
-                    {estimatedTrustInfo.multiplier < 1 && (
+                    {effortInfo.multiplier > 1 && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">
+                        +{Math.round((effortInfo.multiplier - 1) * 100)}% esfuerzo
+                      </span>
+                    )}
+                    {estimatedTrustInfo.trustMultiplier < 1 && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">
-                        {estimatedTrustInfo.multiplier}x
+                        {estimatedTrustInfo.trustMultiplier}x trust
                       </span>
                     )}
                   </div>
@@ -269,7 +300,7 @@ export function LogActivityDialog() {
               </div>
 
               {/* Tip to improve */}
-              {estimatedTrustInfo.multiplier < 1 && (
+              {estimatedTrustInfo.trustMultiplier < 1 && (
                 <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                   <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                   <span>Conecta un wearable para obtener datos biométricos y mejorar tu Trust Score.</span>
