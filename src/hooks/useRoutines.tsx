@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { calculateTrustScore, applyTrustScoreToCredits } from "@/lib/trust-score";
 import { toast } from "sonner";
+
+const CREDITS_PER_MINUTE = 2;
 
 export interface Trainer {
   id: string;
@@ -86,16 +89,43 @@ export function useRoutines() {
   });
 
   const completeRoutine = useMutation({
-    mutationFn: async ({ routineId, durationMinutes }: { routineId: string; durationMinutes: number }) => {
+    mutationFn: async ({ routineId, durationMinutes, category }: { routineId: string; durationMinutes: number; category: string }) => {
       if (!user) throw new Error("No autenticado");
-      const { error } = await supabase
+
+      // 1. Record routine progress
+      const { error: progressError } = await supabase
         .from("user_routine_progress")
         .insert({ user_id: user.id, routine_id: routineId, duration_minutes: durationMinutes });
-      if (error) throw error;
+      if (progressError) throw progressError;
+
+      // 2. Log as activity via secure RPC to earn credits
+      const trustResult = calculateTrustScore({
+        activityType: category,
+        durationMinutes,
+        source: "routine",
+      });
+      const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
+      const { adjustedCredits } = applyTrustScoreToCredits(baseCredits, trustResult.score);
+
+      const { data, error: activityError } = await supabase.rpc("log_activity", {
+        p_activity_type: category,
+        p_duration_minutes: durationMinutes,
+        p_credits_earned: adjustedCredits,
+        p_trust_score: trustResult.score,
+        p_trust_flags: trustResult.flags,
+        p_source: "routine",
+      });
+      if (activityError) throw activityError;
+      const result = data as unknown as { success: boolean; credits_earned?: number; error?: string };
+      if (!result.success) throw new Error(result.error || "Error al registrar actividad");
+
+      return { creditsEarned: result.credits_earned ?? adjustedCredits };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user-routine-progress"] });
-      toast.success("¡Rutina completada! 💪");
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["credits"] });
+      toast.success(`¡Rutina completada! +${data.creditsEarned} créditos 💪`);
     },
     onError: () => toast.error("Error al registrar la rutina"),
   });

@@ -162,6 +162,7 @@ export default function Routines() {
                   completeRoutine.mutate({
                     routineId: routine.id,
                     durationMinutes: routine.duration_minutes,
+                    category: routine.category,
                   })
                 }
                 isCompleting={completeRoutine.isPending}
