@@ -8,7 +8,7 @@
 export interface ActivityData {
   activityType: string;
   durationMinutes: number;
-  source: "manual" | "fitbit" | "google_fit" | "apple_health";
+  source: "manual" | "fitbit" | "google_fit" | "apple_health" | "routine";
   heartRateAvg?: number;
   heartRateMax?: number;
   caloriesBurned?: number;
