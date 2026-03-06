@@ -212,6 +212,42 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          age: number | null
+          created_at: string
+          fitness_goal: string | null
+          height_cm: number | null
+          id: string
+          name: string | null
+          updated_at: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          fitness_goal?: string | null
+          height_cm?: number | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          fitness_goal?: string | null
+          height_cm?: number | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       redemptions: {
         Row: {
           credits_spent: number
