@@ -6,7 +6,7 @@ import { LevelBadge } from "./LevelBadge";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievements } from "@/hooks/useAchievements";
-import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays } from "lucide-react";
+import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +63,12 @@ export function Navbar() {
                   <Button variant="ghost" size="sm" className="gap-2">
                     <CalendarDays className="h-4 w-4" />
                     Semanal
+                  </Button>
+                </Link>
+                <Link to="/fitness">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Heart className="h-4 w-4" />
+                    Fitness
                   </Button>
                 </Link>
                 <Link to="/rewards">
@@ -127,6 +133,10 @@ export function Navbar() {
                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/weekly")}>
                     <CalendarDays className="mr-2 h-4 w-4" />
                     Semanal
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/fitness")}>
+                    <Heart className="mr-2 h-4 w-4" />
+                    Fitness
                   </DropdownMenuItem>
                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/rewards")}>
                     Recompensas
