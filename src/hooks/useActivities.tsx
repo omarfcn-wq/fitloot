@@ -1,13 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useProfile } from "./useProfile";
 import type { ActivityInsert } from "@/lib/supabase-types";
 import { calculateTrustScore, applyTrustScoreToCredits } from "@/lib/trust-score";
+import { applyEffortMultiplier } from "@/lib/effort-multiplier";
 
 const CREDITS_PER_MINUTE = 2;
 
 export function useActivities() {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const queryClient = useQueryClient();
 
   const { data: activities, isLoading } = useQuery({
@@ -58,11 +61,16 @@ export function useActivities() {
         validationRules ?? undefined
       );
       
-      // Calculate base credits and apply trust score multiplier
+      // Calculate base credits, apply trust score, then effort multiplier
       const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
-      const { adjustedCredits, multiplier } = applyTrustScoreToCredits(
+      const { adjustedCredits: trustAdjusted, multiplier } = applyTrustScoreToCredits(
         baseCredits,
         trustResult.score
+      );
+      const { adjustedCredits, effort } = applyEffortMultiplier(
+        trustAdjusted,
+        profile?.weight_kg,
+        profile?.height_cm
       );
       
       // Use SECURITY DEFINER RPC instead of direct insert
@@ -85,7 +93,9 @@ export function useActivities() {
         creditsEarned: adjustedCredits, 
         baseCredits,
         multiplier,
-        trustScore: trustResult.score 
+        trustScore: trustResult.score,
+        effortMultiplier: effort.multiplier,
+        effortLabel: effort.label,
       };
     },
     onSuccess: () => {
