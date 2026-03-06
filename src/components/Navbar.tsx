@@ -21,8 +21,11 @@ import {
  
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
   const { levelInfo } = useAchievements();
+
+  const displayName = profile?.name || user?.email?.split("@")[0] || "Usuario";
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin-nav", user?.id],
@@ -168,7 +171,7 @@ export function Navbar() {
                   )}
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Configuración
+                    {displayName}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>

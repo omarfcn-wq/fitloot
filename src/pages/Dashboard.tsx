@@ -17,6 +17,7 @@ import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight,
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
+  const { profile } = useProfile();
   const { credits, isLoading: creditsLoading } = useCredits();
   const { activities, isLoading: activitiesLoading, totalCreditsEarned } = useActivities();
   const { levelInfo, userStats, userAchievements, achievements, checkAchievements } = useAchievements();
@@ -89,7 +90,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-muted-foreground">
-              Bienvenido, {user?.email?.split("@")[0]}
+              Bienvenido, {profile?.name || user?.email?.split("@")[0]}
             </p>
           </div>
           <div className="flex items-center gap-2">
