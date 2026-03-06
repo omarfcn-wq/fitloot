@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { calculateTrustScore, applyTrustScoreToCredits } from "@/lib/trust-score";
+import { applyEffortMultiplier } from "@/lib/effort-multiplier";
 import { toast } from "sonner";
 
 const CREDITS_PER_MINUTE = 2;
@@ -41,6 +43,7 @@ export interface Routine {
 
 export function useRoutines() {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const queryClient = useQueryClient();
 
   const { data: trainers = [], isLoading: trainersLoading } = useQuery({
@@ -105,7 +108,12 @@ export function useRoutines() {
         source: "routine",
       });
       const baseCredits = durationMinutes * CREDITS_PER_MINUTE;
-      const { adjustedCredits } = applyTrustScoreToCredits(baseCredits, trustResult.score);
+      const { adjustedCredits: trustAdjusted } = applyTrustScoreToCredits(baseCredits, trustResult.score);
+      const { adjustedCredits } = applyEffortMultiplier(
+        trustAdjusted,
+        profile?.weight_kg,
+        profile?.height_cm
+      );
 
       const { data, error: activityError } = await supabase.rpc("log_activity", {
         p_activity_type: category,
