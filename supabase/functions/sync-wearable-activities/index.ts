@@ -60,6 +60,19 @@ serve(async (req) => {
       })
       .eq('id', connection.id);
 
+    // Send notification if new activities were synced
+    if (activitiesAdded > 0) {
+      const providerName = provider === 'google_fit' ? 'Google Fit' : 'Fitbit';
+      await supabaseClient.from('notifications').insert({
+        user_id: userId,
+        type: 'sync',
+        title: `🔄 Sincronización ${providerName}`,
+        message: `Se sincronizaron ${activitiesAdded} actividad${activitiesAdded > 1 ? 'es' : ''} nuevas. ¡Ganaste ${creditsEarned} créditos!`,
+        icon: 'activity',
+        metadata: { provider, activitiesAdded, creditsEarned },
+      });
+    }
+
     return new Response(
       JSON.stringify({ success: true, activitiesAdded, creditsEarned }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
