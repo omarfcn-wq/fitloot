@@ -352,6 +352,101 @@ export type Database = {
         }
         Relationships: []
       }
+      routines: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          difficulty: string
+          duration_minutes: number
+          exercises: Json
+          id: string
+          is_published: boolean
+          thumbnail_url: string | null
+          title: string
+          trainer_id: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration_minutes?: number
+          exercises?: Json
+          id?: string
+          is_published?: boolean
+          thumbnail_url?: string | null
+          title: string
+          trainer_id: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration_minutes?: number
+          exercises?: Json
+          id?: string
+          is_published?: boolean
+          thumbnail_url?: string | null
+          title?: string
+          trainer_id?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routines_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainers: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          country: string
+          country_flag: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          social_url: string | null
+          specialty: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          country: string
+          country_flag?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          social_url?: string | null
+          specialty?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string
+          country_flag?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          social_url?: string | null
+          specialty?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -473,6 +568,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_routine_progress: {
+        Row: {
+          completed_at: string
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          routine_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          routine_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          routine_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_routine_progress_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wearable_connections: {
         Row: {
