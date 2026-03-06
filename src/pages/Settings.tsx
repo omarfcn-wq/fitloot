@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWearables } from "@/hooks/useWearables";
 import { Loader2, Watch, Activity, Apple, Smartphone, Zap, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { UserProfileForm } from "@/components/UserProfileForm";
 
 export default function Settings() {
   const { user, loading: authLoading } = useAuth();
@@ -158,6 +159,11 @@ export default function Settings() {
             Gestiona tus dispositivos fitness y obtén recompensas por ejercitarte
           </p>
         </div>
+
+        {/* User Profile */}
+        <UserProfileForm />
+
+        <div className="mt-6" />
 
         {/* Connection Stats */}
         {hasActiveConnections && (
