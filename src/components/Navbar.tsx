@@ -7,7 +7,7 @@ import { NotificationBell } from "./notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
-import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart } from "lucide-react";
+import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart, Dumbbell } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +92,12 @@ export function Navbar() {
                     Historial
                   </Button>
                 </Link>
+                <Link to="/routines">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Dumbbell className="h-4 w-4" />
+                    Rutinas
+                  </Button>
+                </Link>
                 <Link to="/referrals">
                   <Button variant="ghost" size="sm" className="gap-2">
                     <UserPlus className="h-4 w-4" />
@@ -153,10 +159,14 @@ export function Navbar() {
                     <History className="mr-2 h-4 w-4" />
                     Historial
                    </DropdownMenuItem>
-                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/referrals")}>
-                     <UserPlus className="mr-2 h-4 w-4" />
-                     Referidos
+                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/routines")}>
+                     <Dumbbell className="mr-2 h-4 w-4" />
+                     Rutinas
                    </DropdownMenuItem>
+                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/referrals")}>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Referidos
+                    </DropdownMenuItem>
                    {isAdmin && (
                     <>
                       <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/analytics")}>
