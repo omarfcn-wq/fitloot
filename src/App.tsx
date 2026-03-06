@@ -17,6 +17,7 @@ import ActivityHistory from "./pages/ActivityHistory";
 import Referrals from "./pages/Referrals";
 import WeeklyMetrics from "./pages/WeeklyMetrics";
 import FitnessScore from "./pages/FitnessScore";
+import Routines from "./pages/Routines";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/referrals" element={<Referrals />} />
             <Route path="/weekly" element={<WeeklyMetrics />} />
             <Route path="/fitness" element={<FitnessScore />} />
+            <Route path="/routines" element={<Routines />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
