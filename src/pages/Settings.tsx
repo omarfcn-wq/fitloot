@@ -10,6 +10,7 @@ import { useWearables } from "@/hooks/useWearables";
 import { Loader2, Watch, Activity, Apple, Smartphone, Zap, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { UserProfileForm } from "@/components/UserProfileForm";
+import { BluetoothDevices } from "@/components/BluetoothDevices";
 
 export default function Settings() {
   const { user, loading: authLoading } = useAuth();
@@ -268,6 +269,11 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+
+        {/* Bluetooth BLE */}
+        <div className="mt-6">
+          <BluetoothDevices />
+        </div>
 
         {/* Rewards Info */}
         <Card className="bg-card border-border">
