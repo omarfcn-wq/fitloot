@@ -270,6 +270,11 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Bluetooth BLE */}
+        <div className="mt-6">
+          <BluetoothDevices />
+        </div>
+
         {/* Rewards Info */}
         <Card className="bg-card border-border">
           <CardContent className="pt-6">
