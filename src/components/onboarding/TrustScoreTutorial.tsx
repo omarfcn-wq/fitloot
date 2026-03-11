@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -69,6 +69,12 @@ export function TrustScoreTutorial({
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (open) {
+      setCurrentStep(0);
+    }
+  }, [open]);
+
   const progress = ((currentStep + 1) / STEPS.length) * 100;
   const isLastStep = currentStep === STEPS.length - 1;
   const isFirstStep = currentStep === 0;
@@ -100,7 +106,7 @@ export function TrustScoreTutorial({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden bg-card border-border">
+      <DialogContent className="w-[calc(100%-1rem)] sm:max-w-lg max-h-[90vh] p-0 gap-0 overflow-y-auto bg-card border-border rounded-lg">
         {/* Header */}
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
@@ -120,7 +126,7 @@ export function TrustScoreTutorial({
         </DialogHeader>
 
         {/* Content */}
-        <div className="p-6 min-h-[340px] flex flex-col justify-center">
+        <div className="p-6 min-h-[260px] sm:min-h-[340px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={step.id}
@@ -267,3 +273,4 @@ function BenefitsContent() {
     </div>
   );
 }
+
