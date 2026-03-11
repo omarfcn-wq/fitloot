@@ -18,6 +18,8 @@ import Referrals from "./pages/Referrals";
 import WeeklyMetrics from "./pages/WeeklyMetrics";
 import FitnessScore from "./pages/FitnessScore";
 import Routines from "./pages/Routines";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
