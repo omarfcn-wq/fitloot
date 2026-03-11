@@ -6,6 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+/** Calculate BMI effort multiplier matching the client-side logic */
+function getEffortMultiplier(weightKg: number | null, heightCm: number | null): { multiplier: number; bmi: number | null } {
+  if (!weightKg || !heightCm || heightCm <= 0 || weightKg <= 0) {
+    return { multiplier: 1.0, bmi: null };
+  }
+  const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+
+  if (bmi >= 35) return { multiplier: 2.0, bmi };
+  if (bmi >= 30) return { multiplier: 1.5, bmi };
+  if (bmi >= 25) return { multiplier: 1.25, bmi };
+  return { multiplier: 1.0, bmi };
+}
+
+/** Wearable activities get a trust score of 100 (verified source) */
+const WEARABLE_TRUST_SCORE = 100;
+const CREDITS_PER_MINUTE = 2;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -36,15 +54,29 @@ serve(async (req) => {
       throw new Error('No active connection found for provider');
     }
 
+    // Fetch user profile for BMI-based effort multiplier
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('weight_kg, height_cm')
+      .eq('user_id', userId)
+      .single();
+
+    const { multiplier: effortMultiplier, bmi } = getEffortMultiplier(
+      profile?.weight_kg ?? null,
+      profile?.height_cm ?? null
+    );
+
+    console.log(`User ${userId}: BMI=${bmi?.toFixed(1) ?? 'N/A'}, effortMultiplier=${effortMultiplier}`);
+
     let activitiesAdded = 0;
     let creditsEarned = 0;
 
     if (provider === 'fitbit') {
-      const result = await syncFitbitActivities(connection, supabaseClient);
+      const result = await syncFitbitActivities(connection, supabaseClient, effortMultiplier);
       activitiesAdded = result.activitiesAdded;
       creditsEarned = result.creditsEarned;
     } else if (provider === 'google_fit') {
-      const result = await syncGoogleFitActivities(connection, supabaseClient);
+      const result = await syncGoogleFitActivities(connection, supabaseClient, effortMultiplier);
       activitiesAdded = result.activitiesAdded;
       creditsEarned = result.creditsEarned;
     } else {
@@ -63,18 +95,19 @@ serve(async (req) => {
     // Send notification if new activities were synced
     if (activitiesAdded > 0) {
       const providerName = provider === 'google_fit' ? 'Google Fit' : 'Fitbit';
+      const bonusNote = effortMultiplier > 1 ? ` (x${effortMultiplier} esfuerzo)` : '';
       await supabaseClient.from('notifications').insert({
         user_id: userId,
         type: 'sync',
         title: `🔄 Sincronización ${providerName}`,
-        message: `Se sincronizaron ${activitiesAdded} actividad${activitiesAdded > 1 ? 'es' : ''} nuevas. ¡Ganaste ${creditsEarned} créditos!`,
+        message: `Se sincronizaron ${activitiesAdded} actividad${activitiesAdded > 1 ? 'es' : ''} nuevas. ¡Ganaste ${creditsEarned} créditos${bonusNote}!`,
         icon: 'activity',
-        metadata: { provider, activitiesAdded, creditsEarned },
+        metadata: { provider, activitiesAdded, creditsEarned, effortMultiplier },
       });
     }
 
     return new Response(
-      JSON.stringify({ success: true, activitiesAdded, creditsEarned }),
+      JSON.stringify({ success: true, activitiesAdded, creditsEarned, effortMultiplier }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
     );
 
@@ -87,7 +120,13 @@ serve(async (req) => {
   }
 });
 
-async function syncFitbitActivities(connection: any, supabaseClient: any) {
+/** Calculate credits with effort multiplier applied */
+function calculateCredits(durationMinutes: number, effortMultiplier: number): number {
+  const base = durationMinutes * CREDITS_PER_MINUTE;
+  return Math.round(base * effortMultiplier);
+}
+
+async function syncFitbitActivities(connection: any, supabaseClient: any, effortMultiplier: number) {
   try {
     const response = await fetch(
       `https://api.fitbit.com/1/user/-/activities/list.json?beforeDate=${new Date().toISOString().split('T')[0]}&sort=desc&offset=0&limit=20`,
@@ -108,7 +147,6 @@ async function syncFitbitActivities(connection: any, supabaseClient: any) {
       const externalId = activity.logId?.toString();
       if (!externalId) continue;
 
-      // Check duplicate
       const { data: existing } = await supabaseClient
         .from('activities')
         .select('id')
@@ -119,7 +157,7 @@ async function syncFitbitActivities(connection: any, supabaseClient: any) {
       if (existing) continue;
 
       const durationMinutes = Math.round((activity.duration || 0) / 60000);
-      const credits = durationMinutes * 2;
+      const credits = calculateCredits(durationMinutes, effortMultiplier);
       const distanceMeters = activity.distance ? Math.round(parseFloat(activity.distance) * 1000) : null;
 
       const { error: insertError } = await supabaseClient
@@ -135,7 +173,7 @@ async function syncFitbitActivities(connection: any, supabaseClient: any) {
           heart_rate_avg: activity.averageHeartRate || null,
           completed_at: new Date(activity.startTime).toISOString(),
           credits_earned: credits,
-          trust_score: 100,
+          trust_score: WEARABLE_TRUST_SCORE,
           source: 'fitbit',
         });
 
@@ -145,7 +183,6 @@ async function syncFitbitActivities(connection: any, supabaseClient: any) {
       }
     }
 
-    // Update user credits
     if (newCredits > 0) {
       const { data: currentCredits } = await supabaseClient
         .from('user_credits')
@@ -168,7 +205,7 @@ async function syncFitbitActivities(connection: any, supabaseClient: any) {
   }
 }
 
-async function syncGoogleFitActivities(connection: any, supabaseClient: any) {
+async function syncGoogleFitActivities(connection: any, supabaseClient: any, effortMultiplier: number) {
   try {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -203,7 +240,7 @@ async function syncGoogleFitActivities(connection: any, supabaseClient: any) {
 
       const durationMs = parseInt(session.endTimeMillis) - parseInt(session.startTimeMillis);
       const durationMinutes = Math.round(durationMs / 60000);
-      const credits = durationMinutes * 2;
+      const credits = calculateCredits(durationMinutes, effortMultiplier);
 
       const { error: insertError } = await supabaseClient
         .from('activities')
@@ -215,7 +252,7 @@ async function syncGoogleFitActivities(connection: any, supabaseClient: any) {
           duration_minutes: durationMinutes,
           completed_at: new Date(parseInt(session.startTimeMillis)).toISOString(),
           credits_earned: credits,
-          trust_score: 100,
+          trust_score: WEARABLE_TRUST_SCORE,
           source: 'google_fit',
         });
 
