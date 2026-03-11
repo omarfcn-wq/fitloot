@@ -46,6 +46,8 @@ const App = () => (
             <Route path="/weekly" element={<WeeklyMetrics />} />
             <Route path="/fitness" element={<FitnessScore />} />
             <Route path="/routines" element={<Routines />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
