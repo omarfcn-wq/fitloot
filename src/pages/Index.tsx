@@ -170,14 +170,22 @@
        </section>
        
        {/* Footer */}
-       <footer className="py-8 px-4 border-t border-border">
-         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
-           <Logo size="sm" />
-           <p className="text-sm text-muted-foreground">
-             © 2026 FitLoot. Gamificación saludable.
-           </p>
-         </div>
-       </footer>
+        <footer className="py-8 px-4 border-t border-border">
+          <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <Logo size="sm" />
+            <div className="flex items-center gap-4">
+              <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Política de Privacidad
+              </Link>
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Condiciones del Servicio
+              </Link>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © 2026 FitLoot. Gamificación saludable.
+            </p>
+          </div>
+        </footer>
      </div>
    );
  }
