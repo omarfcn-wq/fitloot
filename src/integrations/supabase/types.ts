@@ -675,6 +675,7 @@ export type Database = {
         Returns: Json
       }
       process_referral: { Args: { p_referral_code: string }; Returns: Json }
+      redeem_reward: { Args: { p_reward_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
