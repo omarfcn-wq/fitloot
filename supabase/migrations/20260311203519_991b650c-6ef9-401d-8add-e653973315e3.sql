@@ -1,0 +1,1 @@
+ALTER TABLE public.wearable_connections ADD CONSTRAINT wearable_connections_user_provider_unique UNIQUE (user_id, provider);
