@@ -18,6 +18,8 @@ import Referrals from "./pages/Referrals";
 import WeeklyMetrics from "./pages/WeeklyMetrics";
 import FitnessScore from "./pages/FitnessScore";
 import Routines from "./pages/Routines";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/weekly" element={<WeeklyMetrics />} />
             <Route path="/fitness" element={<FitnessScore />} />
             <Route path="/routines" element={<Routines />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
