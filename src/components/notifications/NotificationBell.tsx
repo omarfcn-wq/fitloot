@@ -42,7 +42,7 @@ export function NotificationBell() {
         sideOffset={8}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h3 className="font-semibold text-foreground">Notificaciones</h3>
+          <h3 className="font-semibold text-foreground">{t("notifications_title")}</h3>
           <div className="flex gap-1">
             {unreadCount > 0 && (
               <Button
