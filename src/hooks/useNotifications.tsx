@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useNotificationAlerts, requestNotificationPermission } from "./useNotificationAlerts";
+import { useNotificationAlerts } from "./useNotificationAlerts";
 
 export interface Notification {
   id: string;
@@ -21,13 +21,6 @@ export function useNotifications() {
   const queryClient = useQueryClient();
   const { triggerAlert, markLoaded } = useNotificationAlerts();
   const prevCountRef = useRef<number | null>(null);
-
-  // Request browser notification permission after auth is ready
-  useEffect(() => {
-    if (!authLoading && user) {
-      requestNotificationPermission();
-    }
-  }, [authLoading, user]);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications", user?.id],
