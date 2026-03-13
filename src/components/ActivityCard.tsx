@@ -36,7 +36,7 @@ const activityNameKeys: Record<string, TranslationKeys> = {
   hiking: "activity_hiking",
 };
 
-const dateFnsLocales: Record<string, Locale> = {
+const dateFnsLocales: Record<string, DateFnsLocale> = {
   es,
   en: enUS,
   fr,
