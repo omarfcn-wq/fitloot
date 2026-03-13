@@ -27,13 +27,18 @@ function playNotificationSound() {
 }
 
 function showBrowserNotification(title: string, body: string) {
+  if (typeof window === "undefined") return;
   if (!("Notification" in window) || Notification.permission !== "granted") return;
 
-  new Notification(title, {
-    body,
-    icon: "/favicon.ico",
-    badge: "/favicon.ico",
-  });
+  try {
+    new Notification(title, {
+      body,
+      icon: "/favicon.ico",
+      badge: "/favicon.ico",
+    });
+  } catch {
+    // Some mobile browsers/webviews don't support Notification constructor reliably
+  }
 }
 
 export function requestNotificationPermission() {
