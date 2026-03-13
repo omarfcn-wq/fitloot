@@ -17,7 +17,7 @@ export interface Notification {
 }
 
 export function useNotifications() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { triggerAlert, markLoaded } = useNotificationAlerts();
   const prevCountRef = useRef<number | null>(null);
