@@ -17,15 +17,17 @@ export interface Notification {
 }
 
 export function useNotifications() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const { triggerAlert, markLoaded } = useNotificationAlerts();
   const prevCountRef = useRef<number | null>(null);
 
-  // Request browser notification permission on mount
+  // Request browser notification permission after auth is ready
   useEffect(() => {
-    requestNotificationPermission();
-  }, []);
+    if (!authLoading && user) {
+      requestNotificationPermission();
+    }
+  }, [authLoading, user]);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications", user?.id],
