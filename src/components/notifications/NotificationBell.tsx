@@ -50,7 +50,7 @@ export function NotificationBell() {
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => markAllAsRead()}
-                title="Marcar todas como leídas"
+                title={t("notifications_mark_all_read")}
               >
                 <Check className="h-4 w-4" />
               </Button>
