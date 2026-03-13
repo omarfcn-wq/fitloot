@@ -77,7 +77,7 @@ export function NotificationBell() {
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <Bell className="h-10 w-10 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">No tienes notificaciones</p>
+              <p className="text-sm text-muted-foreground">{t("notifications_empty")}</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
