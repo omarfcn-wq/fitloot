@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useFitnessScore } from "@/hooks/useFitnessScore";
+import { useI18n } from "@/i18n";
 import {
   Loader2, Heart, Flame, CalendarCheck, Clock, Repeat, Dumbbell, TrendingUp, Zap, Star,
 } from "lucide-react";
@@ -14,7 +15,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 
-function ScoreRing({ score, size = 180 }: { score: number; size?: number }) {
+function ScoreRing({ score, size = 180, t }: { score: number; size?: number; t: (key: any) => string }) {
   const radius = (size - 20) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
@@ -24,10 +25,10 @@ function ScoreRing({ score, size = 180 }: { score: number; size?: number }) {
     score >= 25 ? "hsl(30, 100%, 60%)" :
     "hsl(350, 80%, 55%)";
   const label =
-    score >= 75 ? "Excelente" :
-    score >= 50 ? "Bueno" :
-    score >= 25 ? "En progreso" :
-    "Inicio";
+    score >= 75 ? t("fitness_excellent") :
+    score >= 50 ? t("fitness_good") :
+    score >= 25 ? t("fitness_in_progress") :
+    t("fitness_start");
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
@@ -83,6 +84,7 @@ export default function FitnessScore() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const fitness = useFitnessScore();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -100,26 +102,24 @@ export default function FitnessScore() {
   }
 
   const radarData = [
-    { metric: "Frecuencia", value: fitness.frequencyScore },
-    { metric: "Duración", value: fitness.durationScore },
-    { metric: "Consistencia", value: fitness.consistencyScore },
-    { metric: "Variedad", value: fitness.varietyScore },
-    { metric: "Intensidad", value: fitness.intensityScore },
+    { metric: t("fitness_frequency"), value: fitness.frequencyScore },
+    { metric: t("fitness_duration"), value: fitness.durationScore },
+    { metric: t("fitness_consistency"), value: fitness.consistencyScore },
+    { metric: t("fitness_variety"), value: fitness.varietyScore },
+    { metric: t("fitness_intensity"), value: fitness.intensityScore },
   ];
 
   const trendData = fitness.weeklyTrend.map((w) => ({
     week: w.weekLabel,
     score: w.score,
-    minutos: w.totalMinutes,
-    calorías: w.totalCalories,
   }));
 
   const summaryStats = [
-    { icon: CalendarCheck, label: "Días activos", value: fitness.totalActiveDays.toString() },
-    { icon: Flame, label: "Racha actual", value: `${fitness.currentStreak} días` },
-    { icon: TrendingUp, label: "Mejor racha", value: `${fitness.longestStreak} días` },
-    { icon: Star, label: "Actividad favorita", value: fitness.favoriteActivity },
-    { icon: Repeat, label: "Semanas activas", value: fitness.totalWeeksActive.toString() },
+    { icon: CalendarCheck, label: t("fitness_active_days"), value: fitness.totalActiveDays.toString() },
+    { icon: Flame, label: t("fitness_current_streak"), value: t("dashboard_streak_days", { count: fitness.currentStreak }) },
+    { icon: TrendingUp, label: t("fitness_best_streak"), value: t("dashboard_streak_days", { count: fitness.longestStreak }) },
+    { icon: Star, label: t("fitness_favorite_activity"), value: fitness.favoriteActivity },
+    { icon: Repeat, label: t("fitness_active_weeks"), value: fitness.totalWeeksActive.toString() },
   ];
 
   return (
@@ -127,27 +127,22 @@ export default function FitnessScore() {
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Condición Física</h1>
-          <p className="text-muted-foreground">
-            Tu resumen de progreso basado en frecuencia, duración, consistencia, variedad e intensidad
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">{t("fitness_title")}</h1>
+          <p className="text-muted-foreground">{t("fitness_subtitle")}</p>
         </div>
 
-        {/* Top: Score + Radar */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-primary" />
-                  Fitness Score
+                  {t("fitness_score")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center gap-4">
-                <ScoreRing score={fitness.overallScore} />
-                <p className="text-sm text-muted-foreground text-center max-w-xs">
-                  Basado en las últimas 4 semanas. La OMS recomienda ≥150 min/semana de actividad moderada.
-                </p>
+                <ScoreRing score={fitness.overallScore} t={t} />
+                <p className="text-sm text-muted-foreground text-center max-w-xs">{t("fitness_who_note")}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -157,7 +152,7 @@ export default function FitnessScore() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-primary" />
-                  Perfil de Rendimiento
+                  {t("fitness_performance")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -183,49 +178,47 @@ export default function FitnessScore() {
           </motion.div>
         </div>
 
-        {/* Breakdown cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <MetricCard
             icon={CalendarCheck}
-            label="Frecuencia"
-            value="Días activos por semana (meta: 5)"
+            label={t("fitness_frequency")}
+            value={t("fitness_frequency_desc")}
             score={fitness.frequencyScore}
             color="primary"
           />
           <MetricCard
             icon={Clock}
-            label="Duración"
-            value="Minutos semanales (meta: 150)"
+            label={t("fitness_duration")}
+            value={t("fitness_duration_desc")}
             score={fitness.durationScore}
             color="sky-400"
           />
           <MetricCard
             icon={Repeat}
-            label="Consistencia"
-            value="Semanas con ≥3 días activos"
+            label={t("fitness_consistency")}
+            value={t("fitness_consistency_desc")}
             score={fitness.consistencyScore}
             color="amber-400"
           />
           <MetricCard
             icon={Dumbbell}
-            label="Variedad"
-            value="Tipos de actividad (meta: 3+)"
+            label={t("fitness_variety")}
+            value={t("fitness_variety_desc")}
             score={fitness.varietyScore}
             color="violet-400"
           />
           <MetricCard
             icon={Flame}
-            label="Intensidad"
-            value="Calorías por minuto"
+            label={t("fitness_intensity")}
+            value={t("fitness_intensity_desc")}
             score={fitness.intensityScore}
             color="orange-400"
           />
         </div>
 
-        {/* Weekly trend */}
         <Card className="bg-card border-border mb-8">
           <CardHeader>
-            <CardTitle className="text-base">Evolución Semanal</CardTitle>
+            <CardTitle className="text-base">{t("fitness_weekly_evolution")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
@@ -261,7 +254,6 @@ export default function FitnessScore() {
           </CardContent>
         </Card>
 
-        {/* Summary stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {summaryStats.map((stat) => (
             <Card key={stat.label} className="bg-card border-border">

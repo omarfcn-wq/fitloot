@@ -5,29 +5,32 @@ import { TrainerCard } from "@/components/TrainerCard";
 import { RoutineCard } from "@/components/RoutineCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoutines } from "@/hooks/useRoutines";
+import { useI18n } from "@/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Dumbbell, Users, X } from "lucide-react";
+import type { TranslationKeys } from "@/i18n/es";
 
-const categoryFilters = [
-  { value: "all", label: "Todas" },
-  { value: "calistenia", label: "Calistenia" },
-  { value: "funcional", label: "Funcional" },
-  { value: "hiit", label: "HIIT" },
-  { value: "strength", label: "Fuerza" },
-  { value: "flexibility", label: "Flexibilidad" },
+const categoryFilters: { value: string; labelKey: TranslationKeys }[] = [
+  { value: "all", labelKey: "routines_cat_all" },
+  { value: "calistenia", labelKey: "routines_cat_calistenia" },
+  { value: "funcional", labelKey: "routines_cat_funcional" },
+  { value: "hiit", labelKey: "routines_cat_hiit" },
+  { value: "strength", labelKey: "routines_cat_strength" },
+  { value: "flexibility", labelKey: "routines_cat_flexibility" },
 ];
 
-const difficultyFilters = [
-  { value: "all", label: "Todos" },
-  { value: "beginner", label: "Principiante" },
-  { value: "intermediate", label: "Intermedio" },
-  { value: "advanced", label: "Avanzado" },
+const difficultyFilters: { value: string; labelKey: TranslationKeys }[] = [
+  { value: "all", labelKey: "routines_diff_all" },
+  { value: "beginner", labelKey: "routines_diff_beginner" },
+  { value: "intermediate", labelKey: "routines_diff_intermediate" },
+  { value: "advanced", labelKey: "routines_diff_advanced" },
 ];
 
 export default function Routines() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const {
     trainers,
     routines,
@@ -65,26 +68,22 @@ export default function Routines() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-6xl">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
               <Dumbbell className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Rutinas de Entrenamiento</h1>
-              <p className="text-muted-foreground">
-                Planes creados por entrenadores profesionales de todo el mundo
-              </p>
+              <h1 className="text-3xl font-bold text-foreground">{t("routines_title")}</h1>
+              <p className="text-muted-foreground">{t("routines_subtitle")}</p>
             </div>
           </div>
         </div>
 
-        {/* Trainers Section */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Users className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-xl font-semibold text-foreground">Entrenadores Partner</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t("routines_trainers")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {trainers.map((trainer) => (
@@ -101,7 +100,6 @@ export default function Routines() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <div className="flex flex-wrap gap-2">
             {categoryFilters.map((f) => (
@@ -111,7 +109,7 @@ export default function Routines() {
                 className="cursor-pointer"
                 onClick={() => setCategoryFilter(f.value)}
               >
-                {f.label}
+                {t(f.labelKey)}
               </Badge>
             ))}
           </div>
@@ -124,7 +122,7 @@ export default function Routines() {
                 className="cursor-pointer"
                 onClick={() => setDifficultyFilter(f.value)}
               >
-                {f.label}
+                {t(f.labelKey)}
               </Badge>
             ))}
           </div>
@@ -140,17 +138,16 @@ export default function Routines() {
               }}
             >
               <X className="h-3 w-3" />
-              Limpiar filtros
+              {t("clear_filters")}
             </Button>
           )}
         </div>
 
-        {/* Routines Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRoutines.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Dumbbell className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground">No se encontraron rutinas con estos filtros.</p>
+              <p className="text-muted-foreground">{t("routines_no_results")}</p>
             </div>
           ) : (
             filteredRoutines.map((routine) => (

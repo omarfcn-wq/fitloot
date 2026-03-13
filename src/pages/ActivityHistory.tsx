@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useActivityHistory, type PenaltyFilter } from "@/hooks/useActivityHistory";
+import { useI18n } from "@/i18n";
 import { ActivityHistoryFilters } from "@/components/history/ActivityHistoryFilters";
 import { ActivityHistoryList } from "@/components/history/ActivityHistoryList";
 import { ActivityHistoryPagination } from "@/components/history/ActivityHistoryPagination";
@@ -16,28 +17,19 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const activityNames: Record<string, string> = {
-  running: "Correr",
-  cycling: "Ciclismo",
-  gym: "Gimnasio",
-  swimming: "Natación",
-  hiking: "Senderismo",
-};
-
 const CREDITS_PER_MINUTE = 2;
 
 export default function ActivityHistory() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
-  // Filters state
   const [activityType, setActivityType] = useState<string>("all");
   const [penaltyFilter, setPenaltyFilter] = useState<PenaltyFilter>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(0);
   }, [activityType, penaltyFilter, dateFrom, dateTo]);
@@ -73,7 +65,6 @@ export default function ActivityHistory() {
   const exportToCSV = async () => {
     if (!user) return;
 
-    // Fetch all data for export (without pagination)
     let query = supabase
       .from("activities")
       .select("*")
@@ -95,7 +86,6 @@ export default function ActivityHistory() {
     const { data: allActivities } = await query;
     if (!allActivities) return;
 
-    // Apply penalty filter client-side for export
     const filteredForExport =
       penaltyFilter === "all"
         ? allActivities
@@ -106,26 +96,19 @@ export default function ActivityHistory() {
           });
 
     const headers = [
-      "Fecha",
-      "Tipo",
-      "Duración (min)",
-      "Créditos Base",
-      "Créditos Ganados",
-      "Trust Score",
-      "Fuente",
-      "Penalizado",
+      "Date", "Type", "Duration (min)", "Base Credits", "Credits Earned", "Trust Score", "Source", "Penalized",
     ];
     const rows = filteredForExport.map((a) => {
       const baseCredits = a.duration_minutes * CREDITS_PER_MINUTE;
       return [
         format(new Date(a.completed_at), "yyyy-MM-dd HH:mm"),
-        activityNames[a.activity_type] ?? a.activity_type,
+        a.activity_type,
         a.duration_minutes,
         baseCredits,
         a.credits_earned,
         a.trust_score ?? 100,
         a.source ?? "manual",
-        a.credits_earned < baseCredits ? "Sí" : "No",
+        a.credits_earned < baseCredits ? "Yes" : "No",
       ];
     });
 
@@ -134,7 +117,7 @@ export default function ActivityHistory() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `actividades_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.download = `activities_${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
   };
 
@@ -155,19 +138,16 @@ export default function ActivityHistory() {
           <div className="flex items-center gap-3">
             <History className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Historial de Actividades</h1>
-              <p className="text-muted-foreground">
-                Consulta y filtra todas tus actividades registradas
-              </p>
+              <h1 className="text-3xl font-bold text-foreground">{t("history_title")}</h1>
+              <p className="text-muted-foreground">{t("history_subtitle")}</p>
             </div>
           </div>
           <Button onClick={exportToCSV} variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
-            Exportar CSV
+            {t("export_csv")}
           </Button>
         </div>
 
-        {/* Filters */}
         <ActivityHistoryFilters
           activityType={activityType}
           setActivityType={setActivityType}
@@ -181,35 +161,33 @@ export default function ActivityHistory() {
           onClearFilters={clearFilters}
         />
 
-        {/* Stats Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-card border-border">
             <CardContent className="p-4">
               <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Actividades</p>
+              <p className="text-xs text-muted-foreground">{t("history_stat_activities")}</p>
             </CardContent>
           </Card>
           <Card className="bg-card border-border">
             <CardContent className="p-4">
               <p className="text-2xl font-bold text-primary">{stats.totalMinutes.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Minutos totales</p>
+              <p className="text-xs text-muted-foreground">{t("history_stat_minutes")}</p>
             </CardContent>
           </Card>
           <Card className="bg-card border-border">
             <CardContent className="p-4">
               <p className="text-2xl font-bold text-emerald-400">{stats.totalCredits.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Créditos ganados</p>
+              <p className="text-xs text-muted-foreground">{t("history_stat_credits")}</p>
             </CardContent>
           </Card>
           <Card className="bg-card border-border">
             <CardContent className="p-4">
               <p className="text-2xl font-bold text-yellow-400">{stats.penalizedPercentage}%</p>
-              <p className="text-xs text-muted-foreground">Penalizadas ({stats.penalizedCount})</p>
+              <p className="text-xs text-muted-foreground">{t("history_stat_penalized", { count: stats.penalizedCount })}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Activities List */}
         <ActivityHistoryList
           activities={activities}
           isLoading={isLoading}
@@ -217,7 +195,6 @@ export default function ActivityHistory() {
           totalDisplayed={stats.total}
         />
 
-        {/* Pagination */}
         <ActivityHistoryPagination
           currentPage={currentPage}
           totalPages={totalPages}
