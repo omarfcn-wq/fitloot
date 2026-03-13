@@ -12,11 +12,13 @@ import {
   ArrowRight
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS, fr, ptBR, type Locale as DateFnsLocale } from "date-fns/locale";
 import type { Activity } from "@/lib/supabase-types";
 import { TrustScoreBadge } from "./TrustScoreBadge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n";
+import type { TranslationKeys } from "@/i18n/es";
 
 const activityIcons: Record<string, React.ElementType> = {
   running: Footprints,
@@ -26,12 +28,19 @@ const activityIcons: Record<string, React.ElementType> = {
   hiking: Mountain,
 };
 
-const activityNames: Record<string, string> = {
-  running: "Correr",
-  cycling: "Ciclismo",
-  gym: "Gimnasio",
-  swimming: "Natación",
-  hiking: "Senderismo",
+const activityNameKeys: Record<string, TranslationKeys> = {
+  running: "activity_running",
+  cycling: "activity_cycling",
+  gym: "activity_gym",
+  swimming: "activity_swimming",
+  hiking: "activity_hiking",
+};
+
+const dateFnsLocales: Record<string, DateFnsLocale> = {
+  es,
+  en: enUS,
+  fr,
+  pt: ptBR,
 };
 
 const CREDITS_PER_MINUTE = 2;
@@ -42,15 +51,18 @@ interface ActivityCardProps {
 
 export function ActivityCard({ activity }: ActivityCardProps) {
   const Icon = activityIcons[activity.activity_type] ?? Dumbbell;
+  const { t, locale } = useI18n();
   
-  // Parse trust_flags from the activity (it's stored as text[] in DB)
   const trustFlags = activity.trust_flags ?? [];
   const trustScore = activity.trust_score ?? 100;
 
-  // Calculate if there was a penalty
   const baseCredits = activity.duration_minutes * CREDITS_PER_MINUTE;
   const hasPenalty = activity.credits_earned < baseCredits;
   const multiplier = hasPenalty ? (activity.credits_earned / baseCredits) : 1;
+
+  const activityName = activityNameKeys[activity.activity_type]
+    ? t(activityNameKeys[activity.activity_type])
+    : activity.activity_type;
 
   return (
     <Card className="bg-card border-border hover:border-primary/50 transition-colors">
@@ -61,7 +73,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-medium text-foreground truncate">
-              {activityNames[activity.activity_type] ?? activity.activity_type}
+              {activityName}
             </p>
             <TrustScoreBadge score={trustScore} flags={trustFlags} />
           </div>
@@ -79,7 +91,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             <span>
               {formatDistanceToNow(new Date(activity.completed_at), { 
                 addSuffix: true,
-                locale: es 
+                locale: dateFnsLocales[locale] ?? es 
               })}
             </span>
           </div>
@@ -101,7 +113,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs">
-                  Penalización {Math.round(multiplier * 100)}% por Trust Score {trustScore}
+                  {t("activity_penalty_tooltip", { percent: Math.round(multiplier * 100), score: trustScore })}
                 </p>
               </TooltipContent>
             </Tooltip>

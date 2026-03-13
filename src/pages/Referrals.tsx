@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useAuth } from "@/hooks/useAuth";
+import { useI18n } from "@/i18n";
 import { Copy, Check, Gift, Users, Coins, UserPlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Referrals() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const {
     referralCode,
     referrals,
@@ -27,7 +29,7 @@ export default function Referrals() {
     if (!referralCode) return;
     await navigator.clipboard.writeText(referralCode);
     setCopied(true);
-    toast.success("Código copiado al portapapeles");
+    toast.success(t("referrals_copied"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -44,13 +46,10 @@ export default function Referrals() {
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Sistema de Referidos</h1>
-          <p className="text-muted-foreground">
-            Invita amigos y ambos ganan 50 créditos de bonificación
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t("referrals_title")}</h1>
+          <p className="text-muted-foreground">{t("referrals_subtitle")}</p>
         </div>
 
-        {/* Stats cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <Card className="bg-card border-border">
             <CardContent className="pt-6 flex items-center gap-4">
@@ -59,7 +58,7 @@ export default function Referrals() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{referrals.length}</p>
-                <p className="text-sm text-muted-foreground">Referidos</p>
+                <p className="text-sm text-muted-foreground">{t("referrals_stat_referrals")}</p>
               </div>
             </CardContent>
           </Card>
@@ -70,7 +69,7 @@ export default function Referrals() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{totalEarned}</p>
-                <p className="text-sm text-muted-foreground">Créditos ganados</p>
+                <p className="text-sm text-muted-foreground">{t("referrals_stat_credits")}</p>
               </div>
             </CardContent>
           </Card>
@@ -81,23 +80,20 @@ export default function Referrals() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">50</p>
-                <p className="text-sm text-muted-foreground">Créditos por referido</p>
+                <p className="text-sm text-muted-foreground">{t("referrals_stat_per_referral")}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Share code */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <UserPlus className="h-5 w-5 text-primary" />
-                Tu Código de Referido
+                {t("referrals_your_code")}
               </CardTitle>
-              <CardDescription>
-                Comparte este código con tus amigos para que ambos ganen créditos
-              </CardDescription>
+              <CardDescription>{t("referrals_share_desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -126,31 +122,26 @@ export default function Referrals() {
             </CardContent>
           </Card>
 
-          {/* Apply code */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <Gift className="h-5 w-5 text-secondary" />
-                Usar Código de Referido
+                {t("referrals_use_code")}
               </CardTitle>
               <CardDescription>
-                {hasUsedReferral
-                  ? "Ya usaste un código de referido"
-                  : "Ingresa el código de un amigo para ganar 50 créditos"}
+                {hasUsedReferral ? t("referrals_already_used") : t("referrals_enter_code")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {hasUsedReferral ? (
                 <div className="text-center py-4">
                   <Check className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Código de referido ya aplicado
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t("referrals_code_applied")}</p>
                 </div>
               ) : (
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Ingresa el código"
+                    placeholder={t("referrals_enter_placeholder")}
                     value={inputCode}
                     onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                     className="font-mono tracking-wider uppercase"
@@ -164,7 +155,7 @@ export default function Referrals() {
                     {isApplying ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      "Aplicar"
+                      t("apply")
                     )}
                   </Button>
                 </div>
@@ -173,11 +164,10 @@ export default function Referrals() {
           </Card>
         </div>
 
-        {/* Referral history */}
         {referrals.length > 0 && (
           <Card className="bg-card border-border mt-6">
             <CardHeader>
-              <CardTitle className="text-foreground">Historial de Referidos</CardTitle>
+              <CardTitle className="text-foreground">{t("referrals_history")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -191,14 +181,14 @@ export default function Referrals() {
                         <UserPlus className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Nuevo referido</p>
+                        <p className="text-sm font-medium text-foreground">{t("referrals_new")}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(r.created_at).toLocaleDateString("es-ES")}
+                          {new Date(r.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     <span className="text-sm font-bold text-primary">
-                      +{r.credits_awarded} créditos
+                      {t("referrals_credits", { amount: r.credits_awarded })}
                     </span>
                   </div>
                 ))}

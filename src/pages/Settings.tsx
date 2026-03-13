@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useWearables } from "@/hooks/useWearables";
+import { useI18n } from "@/i18n";
 import { Loader2, Watch, Activity, Apple, Smartphone, Zap, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { UserProfileForm } from "@/components/UserProfileForm";
@@ -14,6 +15,7 @@ import { BluetoothDevices } from "@/components/BluetoothDevices";
 
 export default function Settings() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useI18n();
   const {
     connections,
     isLoading,
@@ -38,20 +40,13 @@ export default function Settings() {
     }
   }, [user, authLoading, navigate]);
 
-  // Handle OAuth callbacks with better UX
   useEffect(() => {
     const success = searchParams.get("success");
     const error = searchParams.get("error");
 
     if (success) {
-      const successMessages: Record<string, string> = {
-        fitbit_connected: "¡Fitbit conectado exitosamente! 🎉",
-        google_connected: "¡Google Fit conectado exitosamente! 🎉"
-      };
+      toast.success(t("connected") + " 🎉");
       
-      toast.success(successMessages[success] || "¡Dispositivo conectado!");
-      
-      // Auto-sync after successful connection
       if (success.includes('fitbit')) {
         setTimeout(() => syncActivities('fitbit'), 2000);
       } else if (success.includes('google')) {
@@ -62,22 +57,11 @@ export default function Settings() {
     }
 
     if (error) {
-      const errorMessages: Record<string, string> = {
-        fitbit_denied: "Permiso de Fitbit denegado. Intenta de nuevo.",
-        google_denied: "Permiso de Google Fit denegado. Intenta de nuevo.",
-        missing_params: "Error en la respuesta del dispositivo",
-        invalid_state: "Sesión de seguridad inválida. Intenta conectar de nuevo.",
-        token_exchange_failed: "Error al obtener permisos. Verifica tu cuenta.",
-        database_error: "Error interno. Contacta soporte si persiste.",
-        internal_error: "Error interno del servidor"
-      };
-      
-      toast.error(errorMessages[error] || "Error al conectar el dispositivo");
+      toast.error(t("log_activity_error"));
       setSearchParams({});
     }
   }, [searchParams, setSearchParams, syncActivities]);
 
-  // Sync all connected devices
   const handleSyncAll = async () => {
     try {
       setSyncProgress(10);
@@ -95,7 +79,7 @@ export default function Settings() {
           totalActivities += data.activitiesAdded;
         } else {
           hasErrors = true;
-          toast.error(`Error sincronizando ${provider}: ${data.error}`);
+          toast.error(`${provider}: ${data.error}`);
         }
       });
 
@@ -103,16 +87,16 @@ export default function Settings() {
       
       if (totalActivities > 0) {
         toast.success(
-          `¡${totalActivities} actividades sincronizadas! +${totalCredits} créditos ganados 🏆`
+          `${totalActivities} +${totalCredits} 🏆`
         );
       } else if (!hasErrors) {
-        toast.info("Sincronización completa. No hay actividades nuevas.");
+        toast.info(t("wearable_no_devices"));
       }
       
       setTimeout(() => setSyncProgress(0), 1000);
     } catch (error: any) {
       setSyncProgress(0);
-      toast.error("Error en sincronización masiva");
+      toast.error(t("log_activity_error"));
     }
   };
 
@@ -128,19 +112,19 @@ export default function Settings() {
     {
       provider: "fitbit" as const,
       name: "Fitbit",
-      description: "Sincroniza actividades, pasos y frecuencia cardíaca",
+      description: t("settings_fitbit_desc"),
       icon: <Watch className="h-6 w-6" />,
     },
     {
       provider: "google_fit" as const,
       name: "Google Fit",
-      description: "Conecta con Google Fit y Android Wear",
+      description: t("settings_google_fit_desc"),
       icon: <Activity className="h-6 w-6" />,
     },
     {
       provider: "apple_health" as const,
       name: "Apple Health",
-      description: "Requiere app móvil nativa (próximamente)",
+      description: t("settings_apple_health_desc"),
       icon: <Apple className="h-6 w-6" />,
     },
   ];
@@ -153,20 +137,15 @@ export default function Settings() {
       <Navbar />
 
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-4xl">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Configuración</h1>
-          <p className="text-muted-foreground">
-            Gestiona tus dispositivos fitness y obtén recompensas por ejercitarte
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">{t("settings_title")}</h1>
+          <p className="text-muted-foreground">{t("settings_subtitle")}</p>
         </div>
 
-        {/* User Profile */}
         <UserProfileForm />
 
         <div className="mt-6" />
 
-        {/* Connection Stats */}
         {hasActiveConnections && (
           <Card className="bg-gradient-to-r from-primary/10 to-blue-500/10 border-primary/20 mb-6">
             <CardContent className="p-6">
@@ -177,12 +156,12 @@ export default function Settings() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">
-                      {stats.activeConnections} dispositivo{stats.activeConnections !== 1 ? 's' : ''} conectado{stats.activeConnections !== 1 ? 's' : ''}
+                      {t("settings_devices_connected", { count: stats.activeConnections })}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {stats.lastSyncAt ? 
-                        `Última sincronización: ${new Date(stats.lastSyncAt).toLocaleString('es-ES')}` :
-                        'Nunca sincronizado'
+                      {stats.lastSyncAt 
+                        ? t("settings_last_sync", { time: new Date(stats.lastSyncAt).toLocaleString() })
+                        : t("settings_never_synced")
                       }
                     </p>
                   </div>
@@ -199,7 +178,7 @@ export default function Settings() {
                   ) : (
                     <TrendingUp className="h-4 w-4" />
                   )}
-                  Sincronizar Todo
+                  {t("settings_sync_all")}
                 </Button>
               </div>
               
@@ -207,7 +186,7 @@ export default function Settings() {
                 <div className="mt-4">
                   <Progress value={syncProgress} className="h-2" />
                   <p className="text-sm text-muted-foreground mt-1">
-                    Sincronizando dispositivos... {syncProgress}%
+                    {t("settings_syncing", { progress: syncProgress })}
                   </p>
                 </div>
               )}
@@ -215,16 +194,13 @@ export default function Settings() {
           </Card>
         )}
 
-        {/* Wearable Connections */}
         <Card className="bg-card border-border mb-8">
           <CardHeader>
             <div className="flex items-center gap-3">
               <Smartphone className="h-6 w-6 text-primary" />
               <div>
-                <CardTitle>Dispositivos Fitness</CardTitle>
-                <CardDescription>
-                  Conecta tus dispositivos para ganar tokens automáticamente
-                </CardDescription>
+                <CardTitle>{t("settings_fitness_devices")}</CardTitle>
+                <CardDescription>{t("settings_fitness_devices_desc")}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -242,8 +218,8 @@ export default function Settings() {
                     onConnect={() => connectWearable(wearable.provider)}
                     onDisconnect={() => {
                       disconnectWearable(wearable.provider, {
-                        onSuccess: () => toast.success(`${wearable.name} desconectado`),
-                        onError: () => toast.error(`Error al desconectar ${wearable.name}`),
+                        onSuccess: () => toast.success(`${wearable.name} ${t("disconnected").toLowerCase()}`),
+                        onError: () => toast.error(t("log_activity_error")),
                       });
                     }}
                     onSync={() => {
@@ -251,13 +227,13 @@ export default function Settings() {
                         onSuccess: (data) => {
                           if (data.creditsEarned > 0) {
                             toast.success(
-                              `¡${data.activitiesAdded} actividades! +${data.creditsEarned} créditos 🎯`
+                              `${data.activitiesAdded} +${data.creditsEarned} 🎯`
                             );
                           } else {
-                            toast.info("Sin actividades nuevas para sincronizar");
+                            toast.info(t("wearable_no_devices"));
                           }
                         },
-                        onError: () => toast.error("Error al sincronizar"),
+                        onError: () => toast.error(t("log_activity_error")),
                       });
                     }}
                     isConnecting={isConnecting}
@@ -270,12 +246,10 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Bluetooth BLE */}
         <div className="mt-6">
           <BluetoothDevices />
         </div>
 
-        {/* Rewards Info */}
         <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex gap-4">
@@ -283,21 +257,15 @@ export default function Settings() {
                 <Zap className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground mb-1">
-                  Sistema de Recompensas Inteligente
-                </h3>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Gana tokens basados en tu esfuerzo real y perfil físico:
-                </p>
+                <h3 className="font-semibold text-foreground mb-1">{t("settings_rewards_system")}</h3>
+                <p className="text-sm text-muted-foreground mb-2">{t("settings_rewards_desc")}</p>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• <strong>2 tokens base</strong> por cada minuto de ejercicio</li>
-                  <li>• <strong>Bonus de esfuerzo</strong> según tu condición física</li>
-                  <li>• <strong>Multiplicador cardíaco</strong> para mayor intensidad</li>
-                  <li>• <strong>Validación anti-trampa</strong> con puntuación de confianza</li>
+                  <li>• <strong>{t("settings_reward_base")}</strong></li>
+                  <li>• <strong>{t("settings_reward_effort")}</strong></li>
+                  <li>• <strong>{t("settings_reward_hr")}</strong></li>
+                  <li>• <strong>{t("settings_reward_anticheat")}</strong></li>
                 </ul>
-                <p className="text-sm text-primary font-medium mt-3">
-                  ¡El ejercicio nunca fue tan rewarding! 🏆
-                </p>
+                <p className="text-sm text-primary font-medium mt-3">{t("settings_reward_cta")}</p>
               </div>
             </div>
           </CardContent>

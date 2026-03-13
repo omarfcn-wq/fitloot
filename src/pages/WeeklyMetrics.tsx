@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useWeeklyMetrics } from "@/hooks/useWeeklyMetrics";
+import { useI18n } from "@/i18n";
 import { Loader2, Clock, Coins, Flame, Activity, TrendingUp, TrendingDown, Minus, CalendarDays } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
@@ -44,6 +45,7 @@ export default function WeeklyMetrics() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { currentWeek, prevWeek, comparisons, weekLabel, isLoading } = useWeeklyMetrics();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -62,7 +64,7 @@ export default function WeeklyMetrics() {
 
   const stats = [
     {
-      title: "Minutos Totales",
+      title: t("weekly_total_minutes"),
       value: currentWeek.totalMinutes,
       prev: prevWeek.totalMinutes,
       trend: comparisons.minutes,
@@ -70,7 +72,7 @@ export default function WeeklyMetrics() {
       color: "text-sky-400",
     },
     {
-      title: "Créditos Ganados",
+      title: t("weekly_credits_earned"),
       value: currentWeek.totalCredits,
       prev: prevWeek.totalCredits,
       trend: comparisons.credits,
@@ -78,7 +80,7 @@ export default function WeeklyMetrics() {
       color: "text-primary",
     },
     {
-      title: "Calorías Quemadas",
+      title: t("weekly_calories_burned"),
       value: currentWeek.totalCalories,
       prev: prevWeek.totalCalories,
       trend: comparisons.calories,
@@ -86,7 +88,7 @@ export default function WeeklyMetrics() {
       color: "text-orange-400",
     },
     {
-      title: "Actividades",
+      title: t("weekly_activities"),
       value: currentWeek.totalActivities,
       prev: prevWeek.totalActivities,
       trend: comparisons.activities,
@@ -95,11 +97,10 @@ export default function WeeklyMetrics() {
     },
   ];
 
-  // Comparison data for bar chart
   const comparisonData = currentWeek.dailyMetrics.map((d, i) => ({
     day: d.dayShort,
-    "Esta semana": d.minutes,
-    "Semana anterior": prevWeek.dailyMetrics[i]?.minutes ?? 0,
+    [t("weekly_this_week")]: d.minutes,
+    [t("weekly_last_week")]: prevWeek.dailyMetrics[i]?.minutes ?? 0,
   }));
 
   return (
@@ -108,7 +109,7 @@ export default function WeeklyMetrics() {
       <main className="container mx-auto px-4 pt-24 pb-8 max-w-6xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Métricas Semanales</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("weekly_title")}</h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
               {weekLabel}
@@ -116,7 +117,6 @@ export default function WeeklyMetrics() {
           </div>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, i) => (
             <Card key={i} className="bg-card border-border">
@@ -142,12 +142,9 @@ export default function WeeklyMetrics() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Daily minutes comparison */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground text-base">
-                Minutos por Día — Comparativa
-              </CardTitle>
+              <CardTitle className="text-foreground text-base">{t("weekly_daily_comparison")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
@@ -164,19 +161,16 @@ export default function WeeklyMetrics() {
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="Esta semana" fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Semana anterior" fill="hsl(263, 70%, 58%)" radius={[4, 4, 0, 0]} opacity={0.6} />
+                  <Bar dataKey={t("weekly_this_week")} fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey={t("weekly_last_week")} fill="hsl(263, 70%, 58%)" radius={[4, 4, 0, 0]} opacity={0.6} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Credits trend */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground text-base">
-                Créditos Ganados por Día
-              </CardTitle>
+              <CardTitle className="text-foreground text-base">{t("weekly_credits_by_day")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
@@ -198,7 +192,7 @@ export default function WeeklyMetrics() {
                     stroke="hsl(142, 76%, 45%)"
                     strokeWidth={2}
                     dot={{ fill: "hsl(142, 76%, 45%)", r: 4 }}
-                    name="Créditos"
+                    name={t("weekly_credits_label")}
                   />
                   <Line
                     type="monotone"
@@ -206,7 +200,7 @@ export default function WeeklyMetrics() {
                     stroke="hsl(30, 100%, 60%)"
                     strokeWidth={2}
                     dot={{ fill: "hsl(30, 100%, 60%)", r: 4 }}
-                    name="Calorías"
+                    name={t("weekly_calories_label")}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -215,17 +209,14 @@ export default function WeeklyMetrics() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Activity type distribution */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground text-base">
-                Distribución por Tipo de Actividad
-              </CardTitle>
+              <CardTitle className="text-foreground text-base">{t("weekly_activity_distribution")}</CardTitle>
             </CardHeader>
             <CardContent>
               {currentWeek.byType.length === 0 ? (
                 <div className="flex items-center justify-center h-[280px] text-muted-foreground text-sm">
-                  Sin actividades esta semana
+                  {t("weekly_no_activities")}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
@@ -253,7 +244,7 @@ export default function WeeklyMetrics() {
                         borderRadius: "8px",
                         color: "hsl(210, 40%, 98%)",
                       }}
-                      formatter={(value: number) => [`${value} min`, "Minutos"]}
+                      formatter={(value: number) => [`${value} min`, t("weekly_minutes_label")]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -261,17 +252,14 @@ export default function WeeklyMetrics() {
             </CardContent>
           </Card>
 
-          {/* Trust Score & Summary */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground text-base">
-                Resumen Semanal
-              </CardTitle>
+              <CardTitle className="text-foreground text-base">{t("weekly_summary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                 <div>
-                  <p className="text-sm text-muted-foreground">Trust Score Promedio</p>
+                  <p className="text-sm text-muted-foreground">{t("weekly_avg_trust")}</p>
                   <p className="text-3xl font-bold text-foreground">
                     {currentWeek.avgTrustScore}
                   </p>
@@ -301,25 +289,26 @@ export default function WeeklyMetrics() {
                         <span className="text-sm text-foreground capitalize">{item.type}</span>
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {item.count} sesiones · {item.minutes} min
+                        {t("weekly_sessions", { count: item.count, minutes: item.minutes })}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Registra actividades para ver tu resumen semanal
+                  {t("weekly_register_prompt")}
                 </p>
               )}
 
               <div className="pt-2 border-t border-border">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Promedio diario</span>
+                  <span className="text-muted-foreground">{t("weekly_daily_avg")}</span>
                   <span className="text-foreground font-medium">
-                    {currentWeek.totalActivities > 0
-                      ? Math.round(currentWeek.totalMinutes / 7)
-                      : 0}{" "}
-                    min/día
+                    {t("weekly_min_per_day", {
+                      minutes: currentWeek.totalActivities > 0
+                        ? Math.round(currentWeek.totalMinutes / 7)
+                        : 0,
+                    })}
                   </span>
                 </div>
               </div>

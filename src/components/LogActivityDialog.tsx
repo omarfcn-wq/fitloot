@@ -20,19 +20,21 @@ import {
 } from "@/components/ui/select";
 import { useActivities } from "@/hooks/useActivities";
 import { useProfile } from "@/hooks/useProfile";
+import { useI18n } from "@/i18n";
 import { Plus, Bike, Footprints, Dumbbell, Waves, Mountain, ShieldAlert, ShieldCheck, Shield, ShieldX, Info, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { calculateTrustScore, getTrustScoreDisplay, applyTrustScoreToCredits, getFlagExplanation } from "@/lib/trust-score";
 import { getEffortMultiplier } from "@/lib/effort-multiplier";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import type { TranslationKeys } from "@/i18n/es";
 
-const activities = [
-  { value: "running", label: "Correr", icon: Footprints },
-  { value: "cycling", label: "Ciclismo", icon: Bike },
-  { value: "gym", label: "Gimnasio", icon: Dumbbell },
-  { value: "swimming", label: "Natación", icon: Waves },
-  { value: "hiking", label: "Senderismo", icon: Mountain },
+const activityTypes = [
+  { value: "running", labelKey: "activity_running" as TranslationKeys, icon: Footprints },
+  { value: "cycling", labelKey: "activity_cycling" as TranslationKeys, icon: Bike },
+  { value: "gym", labelKey: "activity_gym" as TranslationKeys, icon: Dumbbell },
+  { value: "swimming", labelKey: "activity_swimming" as TranslationKeys, icon: Waves },
+  { value: "hiking", labelKey: "activity_hiking" as TranslationKeys, icon: Mountain },
 ];
 
 const CREDITS_PER_MINUTE = 2;
@@ -43,10 +45,10 @@ export function LogActivityDialog() {
   const [duration, setDuration] = useState("");
   const { logActivity, isLogging } = useActivities();
   const { profile } = useProfile();
+  const { t } = useI18n();
 
   const effortInfo = getEffortMultiplier(profile?.weight_kg, profile?.height_cm);
 
-  // Calculate estimated trust score in real-time
   const estimatedTrustInfo = useMemo(() => {
     const durationMinutes = parseInt(duration);
     if (!activityType || isNaN(durationMinutes) || durationMinutes <= 0) {
@@ -77,13 +79,13 @@ export function LogActivityDialog() {
 
   const handleSubmit = () => {
     if (!activityType || !duration) {
-      toast.error("Por favor completa todos los campos");
+      toast.error(t("log_activity_fill_fields"));
       return;
     }
 
     const durationMinutes = parseInt(duration);
     if (isNaN(durationMinutes) || durationMinutes <= 0) {
-      toast.error("La duración debe ser mayor a 0");
+      toast.error(t("log_activity_invalid_duration"));
       return;
     }
 
@@ -96,11 +98,11 @@ export function LogActivityDialog() {
           if (multiplier < 1) {
             const penaltyPercent = Math.round((1 - multiplier) * 100);
             toast.warning(
-              `Ganaste ${creditsEarned} créditos (base ${baseCredits}, ${multiplier}x, -${penaltyPercent}% por Trust Score ${trustScore})`,
+              t("log_activity_penalty", { credits: creditsEarned, base: baseCredits, multiplier, penalty: penaltyPercent, score: trustScore }),
               { duration: 5000 }
             );
           } else {
-            toast.success(`¡Ganaste ${creditsEarned} créditos!`);
+            toast.success(t("log_activity_success", { credits: creditsEarned }));
           }
 
           setOpen(false);
@@ -108,7 +110,7 @@ export function LogActivityDialog() {
           setDuration("");
         },
         onError: () => {
-          toast.error("Error al registrar la actividad");
+          toast.error(t("log_activity_error"));
         },
       }
     );
@@ -124,28 +126,28 @@ export function LogActivityDialog() {
       <DialogTrigger asChild>
         <Button className="glow-green gap-2">
           <Plus className="h-4 w-4" />
-          Registrar Actividad
+          {t("log_activity_button")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Registrar Actividad Física</DialogTitle>
-          <DialogDescription>Gana 2 créditos por cada minuto de ejercicio</DialogDescription>
+          <DialogTitle>{t("log_activity_title")}</DialogTitle>
+          <DialogDescription>{t("log_activity_subtitle")}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="activity">Tipo de actividad</Label>
+            <Label htmlFor="activity">{t("log_activity_type")}</Label>
             <Select value={activityType} onValueChange={setActivityType}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona una actividad" />
+                <SelectValue placeholder={t("log_activity_select")} />
               </SelectTrigger>
               <SelectContent>
-                {activities.map((activity) => (
+                {activityTypes.map((activity) => (
                   <SelectItem key={activity.value} value={activity.value}>
                     <div className="flex items-center gap-2">
                       <activity.icon className="h-4 w-4" />
-                      {activity.label}
+                      {t(activity.labelKey)}
                     </div>
                   </SelectItem>
                 ))}
@@ -154,7 +156,7 @@ export function LogActivityDialog() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="duration">Duración (minutos)</Label>
+            <Label htmlFor="duration">{t("log_activity_duration")}</Label>
             <Input
               id="duration"
               type="number"
@@ -185,14 +187,14 @@ export function LogActivityDialog() {
                       estimatedTrustInfo.category === "suspicious" && "text-yellow-400",
                       estimatedTrustInfo.category === "flagged" && "text-red-400",
                     )} />
-                    <span className="text-sm font-medium text-muted-foreground">Trust Score Estimado</span>
+                    <span className="text-sm font-medium text-muted-foreground">{t("log_activity_trust_estimated")}</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
                           <Info className="h-3.5 w-3.5 text-muted-foreground/60" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">Este es un estimado basado en los datos ingresados. El score final puede variar.</p>
+                          <p className="text-xs">{t("log_activity_trust_tooltip")}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -261,7 +263,7 @@ export function LogActivityDialog() {
                           <Info className="h-3.5 w-3.5 text-orange-400/60" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">Tu IMC ({effortInfo.bmi?.toFixed(1)}) indica mayor esfuerzo físico. Recibes un bonus de {effortInfo.multiplier}x en créditos.</p>
+                          <p className="text-xs">{t("log_activity_effort_tooltip", { bmi: effortInfo.bmi?.toFixed(1) ?? "?", multiplier: effortInfo.multiplier })}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -272,7 +274,7 @@ export function LogActivityDialog() {
               {/* Credits Preview */}
               <div className="p-3 rounded-lg bg-card border border-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Créditos estimados:</span>
+                  <span className="text-sm text-muted-foreground">{t("log_activity_credits_estimated")}</span>
                   <div className="flex items-center gap-2">
                     {(estimatedTrustInfo.trustMultiplier < 1 || effortInfo.multiplier > 1) && (
                       <span className="text-xs text-muted-foreground line-through">
@@ -287,7 +289,7 @@ export function LogActivityDialog() {
                     </span>
                     {effortInfo.multiplier > 1 && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">
-                        +{Math.round((effortInfo.multiplier - 1) * 100)}% esfuerzo
+                        {t("log_activity_effort_bonus", { percent: Math.round((effortInfo.multiplier - 1) * 100) })}
                       </span>
                     )}
                     {estimatedTrustInfo.trustMultiplier < 1 && (
@@ -303,7 +305,7 @@ export function LogActivityDialog() {
               {estimatedTrustInfo.trustMultiplier < 1 && (
                 <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                   <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                  <span>Conecta un wearable para obtener datos biométricos y mejorar tu Trust Score.</span>
+                  <span>{t("log_activity_wearable_tip")}</span>
                 </p>
               )}
             </div>
@@ -312,10 +314,10 @@ export function LogActivityDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancelar
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isLogging} className="glow-green">
-            {isLogging ? "Registrando..." : "Registrar"}
+            {isLogging ? t("registering") : t("register")}
           </Button>
         </DialogFooter>
       </DialogContent>
