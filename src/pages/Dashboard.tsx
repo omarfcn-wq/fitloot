@@ -7,12 +7,14 @@ import { LogActivityDialog } from "@/components/LogActivityDialog";
 import { ActivityCard } from "@/components/ActivityCard";
 import { LevelBadge } from "@/components/LevelBadge";
 import { TrustScoreTutorial } from "@/components/onboarding/TrustScoreTutorial";
+import { WearableQuickConnect } from "@/components/WearableQuickConnect";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useCredits } from "@/hooks/useCredits";
 import { useActivities } from "@/hooks/useActivities";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useI18n } from "@/i18n";
 import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight, HelpCircle } from "lucide-react";
 
 export default function Dashboard() {
@@ -22,6 +24,7 @@ export default function Dashboard() {
   const { activities, isLoading: activitiesLoading, totalCreditsEarned } = useActivities();
   const { levelInfo, userStats, userAchievements, achievements, checkAchievements } = useAchievements();
   const { showTutorial, openTutorial, closeTutorial, completeOnboarding } = useOnboarding();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,7 +33,6 @@ export default function Dashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  // Check achievements when stats change
   useEffect(() => {
     if (userStats && achievements.length > 0) {
       checkAchievements();
@@ -46,29 +48,30 @@ export default function Dashboard() {
   }
 
   const totalMinutes = activities.reduce((sum, a) => sum + a.duration_minutes, 0);
+  const displayName = profile?.name || user?.email?.split("@")[0] || "";
 
   const stats = [
     {
-      title: "Créditos Disponibles",
+      title: t("dashboard_credits_available"),
       value: creditsLoading ? "..." : credits.toLocaleString(),
       icon: Coins,
       color: "text-primary",
     },
     {
-      title: "Créditos Ganados",
+      title: t("dashboard_credits_earned"),
       value: totalCreditsEarned.toLocaleString(),
       icon: TrendingUp,
       color: "text-emerald-400",
     },
     {
-      title: "Minutos de Ejercicio",
+      title: t("dashboard_exercise_minutes"),
       value: totalMinutes.toLocaleString(),
       icon: Clock,
       color: "text-sky-400",
     },
     {
-      title: "Racha Actual",
-      value: `${userStats?.streak ?? 0} días`,
+      title: t("dashboard_current_streak"),
+      value: t("dashboard_streak_days", { count: userStats?.streak ?? 0 }),
       icon: Flame,
       color: "text-orange-400",
     },
@@ -77,20 +80,19 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Tutorial */}
+
       <TrustScoreTutorial
         open={showTutorial}
         onClose={closeTutorial}
         onComplete={completeOnboarding}
       />
-      
+
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-6xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("dashboard_title")}</h1>
             <p className="text-muted-foreground">
-              Bienvenido, {profile?.name || user?.email?.split("@")[0]}
+              {t("dashboard_welcome", { name: displayName })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -100,16 +102,16 @@ export default function Dashboard() {
               size="icon"
               onClick={openTutorial}
               className="h-10 w-10"
-              title="Tutorial Trust Score"
+              title={t("dashboard_trust_tutorial")}
             >
               <HelpCircle className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        
-        {/* Level and Achievements Summary */}
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
-          <LevelBadge 
+
+        {/* Level, Achievements, and Wearable Quick Connect */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <LevelBadge
             level={levelInfo.level}
             currentXP={levelInfo.currentLevelXP}
             nextLevelXP={levelInfo.nextLevelXP}
@@ -121,7 +123,7 @@ export default function Dashboard() {
                   <Trophy className="h-5 w-5 text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Logros conseguidos</p>
+                  <p className="text-sm text-muted-foreground">{t("dashboard_achievements_earned")}</p>
                   <p className="text-2xl font-bold text-foreground">
                     {userAchievements.length} / {achievements.length}
                   </p>
@@ -129,12 +131,13 @@ export default function Dashboard() {
               </div>
               <Link to="/achievements">
                 <Button variant="ghost" size="sm" className="gap-1">
-                  Ver todos
+                  {t("view_all")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
             </CardContent>
           </Card>
+          <WearableQuickConnect variant="card" />
         </div>
 
         {/* Stats Grid */}
@@ -153,11 +156,11 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
-        
+
         {/* Recent Activities */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
+            <CardTitle>{t("dashboard_recent_activity")}</CardTitle>
           </CardHeader>
           <CardContent>
             {activitiesLoading ? (
@@ -167,12 +170,8 @@ export default function Dashboard() {
             ) : activities.length === 0 ? (
               <div className="text-center py-12">
                 <Target className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground">
-                  No has registrado actividades aún.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  ¡Haz ejercicio y gana tus primeros créditos!
-                </p>
+                <p className="text-muted-foreground">{t("dashboard_no_activities")}</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard_no_activities_hint")}</p>
               </div>
             ) : (
               <div className="space-y-3">
