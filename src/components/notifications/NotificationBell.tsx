@@ -61,7 +61,7 @@ export function NotificationBell() {
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
                 onClick={() => clearAll()}
-                title="Eliminar todas"
+                title={t("notifications_delete_all")}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
