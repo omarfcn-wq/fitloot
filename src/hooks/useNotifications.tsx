@@ -49,16 +49,30 @@ export function useNotifications() {
 
   // Detect new notifications and trigger alerts
   useEffect(() => {
+    if (!user) {
+      prevCountRef.current = null;
+      return;
+    }
+
     const currentCount = notifications.length;
-    if (prevCountRef.current !== null && currentCount > prevCountRef.current) {
+
+    // Initialize baseline without firing alert on first authenticated load
+    if (prevCountRef.current === null) {
+      prevCountRef.current = currentCount;
+      markLoaded();
+      return;
+    }
+
+    if (currentCount > prevCountRef.current) {
       const newest = notifications[0];
       if (newest) {
         triggerAlert(newest.title, newest.message);
       }
     }
+
     prevCountRef.current = currentCount;
     markLoaded();
-  }, [notifications, triggerAlert, markLoaded]);
+  }, [user, notifications, triggerAlert, markLoaded]);
 
   // Realtime subscription
   useEffect(() => {
