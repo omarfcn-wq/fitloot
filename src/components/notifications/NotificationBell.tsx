@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications } from "@/hooks/useNotifications";
+import { requestNotificationPermission } from "@/hooks/useNotificationAlerts";
 import { NotificationItem } from "./NotificationItem";
 import { cn } from "@/lib/utils";
 
@@ -19,10 +20,14 @@ export function NotificationBell() {
     clearAll,
   } = useNotifications();
 
+  const handleBellClick = () => {
+    requestNotificationPermission();
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative" onClick={handleBellClick}>
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center animate-pulse">

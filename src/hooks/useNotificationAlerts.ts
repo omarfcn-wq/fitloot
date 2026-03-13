@@ -3,9 +3,29 @@ import { useCallback, useRef } from "react";
 const NOTIFICATION_SOUND_FREQUENCY = 800;
 const NOTIFICATION_SOUND_DURATION = 150;
 
+function isMobileLikeEnvironment() {
+  if (typeof window === "undefined") return false;
+
+  const userAgent = navigator.userAgent || "";
+  const isMobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
+  const isStandalone =
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+  return isMobileUa || isStandalone;
+}
+
 function playNotificationSound() {
+  if (typeof window === "undefined" || isMobileLikeEnvironment()) return;
+
   try {
-    const ctx = new AudioContext();
+    const AudioContextCtor =
+      window.AudioContext ||
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+    if (!AudioContextCtor) return;
+
+    const ctx = new AudioContextCtor();
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -17,17 +37,23 @@ function playNotificationSound() {
     gain.gain.setValueAtTime(0.3, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + NOTIFICATION_SOUND_DURATION / 1000);
 
+    if (ctx.state === "suspended") {
+      void ctx.resume().catch(() => undefined);
+    }
+
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + NOTIFICATION_SOUND_DURATION / 1000);
 
-    oscillator.onended = () => ctx.close();
+    oscillator.onended = () => {
+      void ctx.close().catch(() => undefined);
+    };
   } catch {
-    // AudioContext not available
+    // Audio APIs not available in this environment
   }
 }
 
 function showBrowserNotification(title: string, body: string) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || isMobileLikeEnvironment()) return;
   if (!("Notification" in window) || Notification.permission !== "granted") return;
 
   try {
@@ -37,13 +63,21 @@ function showBrowserNotification(title: string, body: string) {
       badge: "/favicon.ico",
     });
   } catch {
-    // Some mobile browsers/webviews don't support Notification constructor reliably
+    // Some browsers/webviews don't support Notification constructor reliably
   }
 }
 
 export function requestNotificationPermission() {
-  if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
+  if (typeof window === "undefined" || isMobileLikeEnvironment()) return;
+  if (!("Notification" in window) || Notification.permission !== "default") return;
+
+  try {
+    const permissionResult = Notification.requestPermission();
+    if (permissionResult instanceof Promise) {
+      void permissionResult.catch(() => undefined);
+    }
+  } catch {
+    // Ignore permission request failures in unsupported environments
   }
 }
 
