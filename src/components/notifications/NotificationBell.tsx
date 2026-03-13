@@ -1,4 +1,4 @@
-import { Bell, Check, Trash2, X } from "lucide-react";
+import { Bell, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -9,7 +9,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications } from "@/hooks/useNotifications";
 import { requestNotificationPermission } from "@/hooks/useNotificationAlerts";
 import { NotificationItem } from "./NotificationItem";
-import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
   const {
@@ -36,8 +35,8 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-80 p-0 bg-popover border-border" 
+      <PopoverContent
+        className="w-80 p-0 bg-popover border-border"
         align="end"
         sideOffset={8}
       >
@@ -77,17 +76,12 @@ export function NotificationBell() {
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <Bell className="h-10 w-10 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No tienes notificaciones
-              </p>
+              <p className="text-sm text-muted-foreground">No tienes notificaciones</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
               {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                />
+                <NotificationItem key={notification.id} notification={notification} />
               ))}
             </div>
           )}

@@ -17,39 +17,39 @@ export interface Notification {
 }
 
 export function useNotifications() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
   const queryClient = useQueryClient();
   const { triggerAlert, markLoaded } = useNotificationAlerts();
   const prevCountRef = useRef<number | null>(null);
+  const queryKey = ["notifications", userId] as const;
 
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ["notifications", user?.id],
+    queryKey,
+    enabled: Boolean(userId) && !authLoading,
     queryFn: async () => {
-      if (!user) return [];
+      if (!userId) return [];
 
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(20);
 
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user,
   });
 
-  // Detect new notifications and trigger alerts
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       prevCountRef.current = null;
       return;
     }
 
     const currentCount = notifications.length;
 
-    // Initialize baseline without firing alert on first authenticated load
     if (prevCountRef.current === null) {
       prevCountRef.current = currentCount;
       markLoaded();
@@ -65,24 +65,23 @@ export function useNotifications() {
 
     prevCountRef.current = currentCount;
     markLoaded();
-  }, [user, notifications, triggerAlert, markLoaded]);
+  }, [userId, notifications, triggerAlert, markLoaded]);
 
-  // Realtime subscription
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
 
     const channel = supabase
-      .channel(`notifications-${user.id}`)
+      .channel(`notifications-${userId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "notifications",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+          queryClient.invalidateQueries({ queryKey });
         }
       )
       .subscribe();
@@ -90,72 +89,77 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+  }, [userId, queryClient, queryKey]);
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
+      if (!userId) return;
+
       const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
-        .eq("id", notificationId);
+        .eq("id", notificationId)
+        .eq("user_id", userId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const markAllAsRead = useMutation({
     mutationFn: async () => {
-      if (!user) return;
+      if (!userId) return;
 
       const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("is_read", false);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const deleteNotification = useMutation({
     mutationFn: async (notificationId: string) => {
+      if (!userId) return;
+
       const { error } = await supabase
         .from("notifications")
         .delete()
-        .eq("id", notificationId);
+        .eq("id", notificationId)
+        .eq("user_id", userId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const clearAll = useMutation({
     mutationFn: async () => {
-      if (!user) return;
+      if (!userId) return;
 
       const { error } = await supabase
         .from("notifications")
         .delete()
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
-  // Create a notification for trust score changes (called from activities hook)
   const createTrustScoreNotification = useMutation({
     mutationFn: async ({
       trustScore,
@@ -168,15 +172,14 @@ export function useNotifications() {
       creditsEarned: number;
       baseCredits: number;
     }) => {
-      if (!user) return;
-
-      // Only notify if there's a significant penalty
+      if (!userId) return;
       if (trustScore >= 70) return;
+      if (baseCredits <= 0) return;
 
       const penaltyPercent = Math.round((1 - creditsEarned / baseCredits) * 100);
-      
+
       const { error } = await supabase.from("notifications").insert({
-        user_id: user.id,
+        user_id: userId,
         type: "trust_score",
         title: trustScore < 50 ? "⚠️ Trust Score Bajo" : "📊 Trust Score Reducido",
         message: `Tu actividad de ${activityType} recibió un Trust Score de ${trustScore}. Créditos reducidos un ${penaltyPercent}% (${baseCredits} → ${creditsEarned}).`,
@@ -187,7 +190,7 @@ export function useNotifications() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
