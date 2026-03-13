@@ -12,10 +12,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
-import { enUS } from "date-fns/locale";
-import { fr } from "date-fns/locale";
-import { ptBR } from "date-fns/locale";
+import { es, enUS, fr, ptBR, type Locale as DateFnsLocale } from "date-fns/locale";
 import type { Activity } from "@/lib/supabase-types";
 import { TrustScoreBadge } from "./TrustScoreBadge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
