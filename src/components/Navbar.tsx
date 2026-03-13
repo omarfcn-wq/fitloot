@@ -4,9 +4,12 @@ import { Logo } from "./Logo";
 import { CreditDisplay } from "./CreditDisplay";
 import { LevelBadge } from "./LevelBadge";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { WearableQuickConnect } from "./WearableQuickConnect";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useAchievements } from "@/hooks/useAchievements";
+import { useI18n } from "@/i18n";
 import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart, Dumbbell } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useQuery } from "@tanstack/react-query";
@@ -18,12 +21,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
- 
+
 export function Navbar() {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
   const { levelInfo } = useAchievements();
+  const { t } = useI18n();
 
   const displayName = profile?.name || user?.email?.split("@")[0] || "Usuario";
 
@@ -47,6 +51,17 @@ export function Navbar() {
     navigate("/");
   };
 
+  const navItems = [
+    { to: "/dashboard", label: t("nav_dashboard") },
+    { to: "/weekly", label: t("nav_weekly"), icon: CalendarDays },
+    { to: "/fitness", label: t("nav_fitness"), icon: Heart },
+    { to: "/rewards", label: t("nav_rewards") },
+    { to: "/achievements", label: t("nav_achievements"), icon: Trophy },
+    { to: "/history", label: t("nav_history"), icon: History },
+    { to: "/routines", label: t("nav_routines"), icon: Dumbbell },
+    { to: "/referrals", label: t("nav_referrals"), icon: UserPlus },
+  ];
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -58,58 +73,20 @@ export function Navbar() {
           {user ? (
             <>
               <div className="hidden sm:flex items-center gap-4">
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link to="/weekly">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <CalendarDays className="h-4 w-4" />
-                    Semanal
-                  </Button>
-                </Link>
-                <Link to="/fitness">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Heart className="h-4 w-4" />
-                    Fitness
-                  </Button>
-                </Link>
-                <Link to="/rewards">
-                  <Button variant="ghost" size="sm">
-                    Recompensas
-                  </Button>
-                </Link>
-                <Link to="/achievements">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Trophy className="h-4 w-4" />
-                    Logros
-                  </Button>
-                </Link>
-                <Link to="/history">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <History className="h-4 w-4" />
-                    Historial
-                  </Button>
-                </Link>
-                <Link to="/routines">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Dumbbell className="h-4 w-4" />
-                    Rutinas
-                  </Button>
-                </Link>
-                <Link to="/referrals">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <UserPlus className="h-4 w-4" />
-                    Referidos
-                  </Button>
-                </Link>
+                {navItems.map(({ to, label, icon: Icon }) => (
+                  <Link key={to} to={to}>
+                    <Button variant="ghost" size="sm" className={Icon ? "gap-2" : ""}>
+                      {Icon && <Icon className="h-4 w-4" />}
+                      {label}
+                    </Button>
+                  </Link>
+                ))}
                 {isAdmin && (
                   <>
                     <Link to="/analytics">
                       <Button variant="ghost" size="sm" className="gap-2 text-primary">
                         <BarChart3 className="h-4 w-4" />
-                        Analytics
+                        {t("nav_analytics")}
                       </Button>
                     </Link>
                     <Link to="/admin">
@@ -121,14 +98,16 @@ export function Navbar() {
                   </>
                 )}
               </div>
+              <WearableQuickConnect variant="icon" />
               <NotificationBell />
-              <LevelBadge 
-                level={levelInfo.level} 
-                currentXP={levelInfo.currentLevelXP} 
+              <LevelBadge
+                level={levelInfo.level}
+                currentXP={levelInfo.currentLevelXP}
                 nextLevelXP={levelInfo.nextLevelXP}
-                compact 
+                compact
               />
               <CreditDisplay />
+              <LanguageSwitcher />
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -137,45 +116,21 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover border-border">
-                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/dashboard")}>
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/weekly")}>
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    Semanal
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/fitness")}>
-                    <Heart className="mr-2 h-4 w-4" />
-                    Fitness
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/rewards")}>
-                    Recompensas
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/achievements")}>
-                    <Trophy className="mr-2 h-4 w-4" />
-                    Logros
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/history")}>
-                    <History className="mr-2 h-4 w-4" />
-                    Historial
-                   </DropdownMenuItem>
-                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/routines")}>
-                     <Dumbbell className="mr-2 h-4 w-4" />
-                     Rutinas
-                   </DropdownMenuItem>
-                   <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/referrals")}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Referidos
+                  {navItems.map(({ to, label, icon: Icon }) => (
+                    <DropdownMenuItem key={to} className="sm:hidden" onClick={() => navigate(to)}>
+                      {Icon && <Icon className="mr-2 h-4 w-4" />}
+                      {label}
                     </DropdownMenuItem>
-                   {isAdmin && (
+                  ))}
+                  {isAdmin && (
                     <>
                       <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/analytics")}>
                         <BarChart3 className="mr-2 h-4 w-4" />
-                        Analytics
+                        {t("nav_analytics")}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="sm:hidden" onClick={() => navigate("/admin")}>
                         <ShieldAlert className="mr-2 h-4 w-4" />
-                        Panel Admin
+                        {t("nav_admin")}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -186,22 +141,23 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    Cerrar sesión
+                    {t("sign_out")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <div className="flex gap-2 items-center">
+              <LanguageSwitcher />
               <ThemeToggle />
               <Link to="/auth">
                 <Button variant="ghost" size="sm">
-                  Iniciar sesión
+                  {t("sign_in")}
                 </Button>
               </Link>
               <Link to="/auth?mode=signup">
                 <Button size="sm" className="glow-green">
-                  Registrarse
+                  {t("sign_up")}
                 </Button>
               </Link>
             </div>

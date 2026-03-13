@@ -9,8 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications } from "@/hooks/useNotifications";
 import { requestNotificationPermission } from "@/hooks/useNotificationAlerts";
 import { NotificationItem } from "./NotificationItem";
-
+import { useI18n } from "@/i18n";
 export function NotificationBell() {
+  const { t } = useI18n();
   const {
     notifications,
     unreadCount,
@@ -41,7 +42,7 @@ export function NotificationBell() {
         sideOffset={8}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h3 className="font-semibold text-foreground">Notificaciones</h3>
+          <h3 className="font-semibold text-foreground">{t("notifications_title")}</h3>
           <div className="flex gap-1">
             {unreadCount > 0 && (
               <Button
@@ -49,7 +50,7 @@ export function NotificationBell() {
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => markAllAsRead()}
-                title="Marcar todas como leídas"
+                title={t("notifications_mark_all_read")}
               >
                 <Check className="h-4 w-4" />
               </Button>
@@ -60,7 +61,7 @@ export function NotificationBell() {
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
                 onClick={() => clearAll()}
-                title="Eliminar todas"
+                title={t("notifications_delete_all")}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -76,7 +77,7 @@ export function NotificationBell() {
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <Bell className="h-10 w-10 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">No tienes notificaciones</p>
+              <p className="text-sm text-muted-foreground">{t("notifications_empty")}</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
