@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications } from "@/hooks/useNotifications";
 import { requestNotificationPermission } from "@/hooks/useNotificationAlerts";
 import { NotificationItem } from "./NotificationItem";
-
+import { useI18n } from "@/i18n";
 export function NotificationBell() {
   const {
     notifications,
