@@ -5,8 +5,8 @@ const config: CapacitorConfig = {
   appName: 'fitloot',
   webDir: 'dist',
   server: {
-    url: 'https://41e2b241-b160-4f6e-bb04-3c696c5f152a.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
+    url: 'https://fitloot.lovable.app',
+    cleartext: false,
   },
 };
 
