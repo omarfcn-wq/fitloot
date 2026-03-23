@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'fitloot',
   webDir: 'dist',
   server: {
-    url: 'https://fitloot.lovable.app',
+    url: 'https://fitloot.app',
     cleartext: false,
   },
 };
