@@ -81,11 +81,13 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <TrustScoreTutorial
-        open={showTutorial}
-        onClose={closeTutorial}
-        onComplete={completeOnboarding}
-      />
+      {showTutorial && typeof window !== "undefined" && !(/Android|iPhone|iPad|iPod|Mobile|CapacitorApp/i.test(navigator.userAgent || "") || (window as any).Capacitor || window.innerWidth <= 768) && (
+        <TrustScoreTutorial
+          open={showTutorial}
+          onClose={closeTutorial}
+          onComplete={completeOnboarding}
+        />
+      )}
 
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-6xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
