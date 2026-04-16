@@ -59,7 +59,7 @@ const App = () => (
           </AuthProvider>
         </I18nProvider>
       </ThemeProvider>
-    </ThemeProvider>
+    </QueryClientProvider>
   </ErrorBoundary>
 );
 
