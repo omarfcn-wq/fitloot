@@ -35,7 +35,7 @@ export default function Dashboard() {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (userStats && achievements.length > 0) {
+    if (!isMobileLikeEnvironment() && userStats && achievements.length > 0) {
       checkAchievements();
     }
   }, [userStats?.totalActivities, userStats?.totalMinutes, userStats?.totalCredits, userStats?.streak]);
