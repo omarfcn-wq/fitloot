@@ -21,17 +21,14 @@ export function installMobileCrashGuard() {
   if (typeof window === "undefined" || !isMobileLikeEnvironment()) return;
 
   try {
-    const refreshKey = "fitloot_mobile_shell_refresh_v3";
-    if (localStorage.getItem(refreshKey) !== "done") {
-      localStorage.setItem(refreshKey, "done");
-      if ("serviceWorker" in navigator) {
-        void navigator.serviceWorker.getRegistrations().then((registrations) => {
-          registrations.forEach((registration) => void registration.unregister());
-        });
-      }
-      if ("caches" in window) {
-        void caches.keys().then((names) => names.forEach((name) => void caches.delete(name)));
-      }
+    localStorage.setItem("fitloot_mobile_shell_refresh_v4", "done");
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => void registration.unregister());
+      });
+    }
+    if ("caches" in window) {
+      void caches.keys().then((names) => names.forEach((name) => void caches.delete(name)));
     }
   } catch {
     // Storage, service worker, or cache APIs may be restricted in mobile webviews.
@@ -70,4 +67,11 @@ export function installMobileCrashGuard() {
       }
     }, 600);
   });
+
+  window.setTimeout(() => {
+    const root = document.getElementById("root");
+    if (!root || root.childElementCount === 0) {
+      showRecoveryScreen("La versión anterior quedó cacheada. Recarga para limpiar el teléfono.");
+    }
+  }, 1800);
 }
