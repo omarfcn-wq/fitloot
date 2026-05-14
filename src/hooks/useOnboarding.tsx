@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
+import { isMobileLikeEnvironment } from "@/utils/platform";
 
 const ONBOARDING_KEY = "trust_score_onboarding_completed";
 
@@ -37,8 +38,7 @@ export function useOnboarding() {
     setHasCompletedOnboarding(completed);
 
     // Evitar auto-popup en móvil (causaba pantalla negra en algunos dispositivos)
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    if (!completed && !isMobile) {
+    if (!completed && !isMobileLikeEnvironment()) {
       const timer = setTimeout(() => {
         setShowTutorial(true);
       }, 1500);
@@ -63,7 +63,10 @@ export function useOnboarding() {
     setHasCompletedOnboarding(false);
   };
 
-  const openTutorial = () => setShowTutorial(true);
+  const openTutorial = () => {
+    if (isMobileLikeEnvironment()) return;
+    setShowTutorial(true);
+  };
   const closeTutorial = () => setShowTutorial(false);
 
   return {

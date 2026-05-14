@@ -1,25 +1,8 @@
 import { useCallback, useRef } from "react";
+import { isMobileLikeEnvironment } from "@/utils/platform";
 
 const NOTIFICATION_SOUND_FREQUENCY = 800;
 const NOTIFICATION_SOUND_DURATION = 150;
-
-function isMobileLikeEnvironment() {
-  if (typeof window === "undefined") return false;
-
-  try {
-    const userAgent = navigator.userAgent || "";
-    const isMobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
-    const isCapacitor = !!(window as any).Capacitor || /CapacitorApp/i.test(userAgent);
-    const isStandalone =
-      window.matchMedia?.("(display-mode: standalone)")?.matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    const isSmallScreen = window.innerWidth <= 768;
-
-    return isMobileUa || isCapacitor || isStandalone || isSmallScreen;
-  } catch {
-    return true; // Fail safe: treat as mobile
-  }
-}
 
 function playNotificationSound() {
   if (typeof window === "undefined" || isMobileLikeEnvironment()) return;
@@ -91,6 +74,7 @@ export function useNotificationAlerts() {
   const isFirstLoad = useRef(true);
 
   const triggerAlert = useCallback((title: string, message: string) => {
+    if (isMobileLikeEnvironment()) return;
     // Skip alerts on initial data load
     if (isFirstLoad.current) return;
     playNotificationSound();

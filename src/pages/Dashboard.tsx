@@ -15,6 +15,7 @@ import { useActivities } from "@/hooks/useActivities";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useI18n } from "@/i18n";
+import { isMobileLikeEnvironment } from "@/utils/platform";
 import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight, HelpCircle } from "lucide-react";
 
 export default function Dashboard() {
@@ -34,7 +35,7 @@ export default function Dashboard() {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (userStats && achievements.length > 0) {
+    if (!isMobileLikeEnvironment() && userStats && achievements.length > 0) {
       checkAchievements();
     }
   }, [userStats?.totalActivities, userStats?.totalMinutes, userStats?.totalCredits, userStats?.streak]);
@@ -81,7 +82,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {showTutorial && typeof window !== "undefined" && !(/Android|iPhone|iPad|iPod|Mobile|CapacitorApp/i.test(navigator.userAgent || "") || (window as any).Capacitor || window.innerWidth <= 768) && (
+      {showTutorial && !isMobileLikeEnvironment() && (
         <TrustScoreTutorial
           open={showTutorial}
           onClose={closeTutorial}
@@ -105,6 +106,7 @@ export default function Dashboard() {
               onClick={openTutorial}
               className="h-10 w-10"
               title={t("dashboard_trust_tutorial")}
+              disabled={isMobileLikeEnvironment()}
             >
               <HelpCircle className="h-4 w-4" />
             </Button>

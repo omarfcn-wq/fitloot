@@ -12,6 +12,7 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { useI18n } from "@/i18n";
 import { LogOut, Menu, Settings, ShieldAlert, Trophy, BarChart3, History, UserPlus, CalendarDays, Heart, Dumbbell } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -28,6 +29,7 @@ export function Navbar() {
   const navigate = useNavigate();
   const { levelInfo } = useAchievements();
   const { t } = useI18n();
+  const isMobile = useIsMobile();
 
   const displayName = profile?.name || user?.email?.split("@")[0] || "Usuario";
 
@@ -98,17 +100,21 @@ export function Navbar() {
                   </>
                 )}
               </div>
-              <WearableQuickConnect variant="icon" />
-              <NotificationBell />
-              <LevelBadge
-                level={levelInfo.level}
-                currentXP={levelInfo.currentLevelXP}
-                nextLevelXP={levelInfo.nextLevelXP}
-                compact
-              />
-              <CreditDisplay />
-              <LanguageSwitcher />
-              <ThemeToggle />
+              {!isMobile && (
+                <>
+                  <WearableQuickConnect variant="icon" />
+                  <NotificationBell />
+                  <LevelBadge
+                    level={levelInfo.level}
+                    currentXP={levelInfo.currentLevelXP}
+                    nextLevelXP={levelInfo.nextLevelXP}
+                    compact
+                  />
+                  <CreditDisplay />
+                  <LanguageSwitcher />
+                  <ThemeToggle />
+                </>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon">
