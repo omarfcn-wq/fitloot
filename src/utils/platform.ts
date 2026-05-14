@@ -53,6 +53,21 @@ export function installMobileCrashGuard() {
     `;
   };
 
-  window.addEventListener("error", () => showRecoveryScreen("Se bloqueó un componente en móvil."));
-  window.addEventListener("unhandledrejection", () => showRecoveryScreen("Hubo un problema cargando datos."));
+  window.addEventListener("error", (event) => {
+    window.setTimeout(() => {
+      const root = document.getElementById("root");
+      if (!root || root.childElementCount === 0) {
+        showRecoveryScreen(event.message || "Se bloqueó un componente en móvil.");
+      }
+    }, 600);
+  });
+
+  window.addEventListener("unhandledrejection", () => {
+    window.setTimeout(() => {
+      const root = document.getElementById("root");
+      if (!root || root.childElementCount === 0) {
+        showRecoveryScreen("Hubo un problema cargando datos.");
+      }
+    }, 600);
+  });
 }
