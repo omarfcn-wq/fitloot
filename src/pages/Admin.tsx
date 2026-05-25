@@ -5,9 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminStats } from "@/components/admin/AdminStats";
 import { RewardsManager } from "@/components/admin/RewardsManager";
 import { UsersManager } from "@/components/admin/UsersManager";
+import { RedemptionsManager } from "@/components/admin/RedemptionsManager";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Loader2, BarChart3, Gift, Users, ShieldAlert } from "lucide-react";
+import { Loader2, BarChart3, Gift, Users, ShieldAlert, Send } from "lucide-react";
 
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
@@ -73,7 +74,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="stats" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
             <TabsTrigger value="stats" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Estadísticas</span>
@@ -81,6 +82,10 @@ export default function Admin() {
             <TabsTrigger value="rewards" className="gap-2">
               <Gift className="h-4 w-4" />
               <span className="hidden sm:inline">Recompensas</span>
+            </TabsTrigger>
+            <TabsTrigger value="redemptions" className="gap-2">
+              <Send className="h-4 w-4" />
+              <span className="hidden sm:inline">Canjes</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -106,6 +111,10 @@ export default function Admin() {
               updateReward={updateReward}
               deleteReward={deleteReward}
             />
+          </TabsContent>
+
+          <TabsContent value="redemptions">
+            <RedemptionsManager />
           </TabsContent>
 
           <TabsContent value="users">
