@@ -5,9 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminStats } from "@/components/admin/AdminStats";
 import { RewardsManager } from "@/components/admin/RewardsManager";
 import { UsersManager } from "@/components/admin/UsersManager";
+import { RedemptionsManager } from "@/components/admin/RedemptionsManager";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Loader2, BarChart3, Gift, Users, ShieldAlert } from "lucide-react";
+import { Loader2, BarChart3, Gift, Users, ShieldAlert, Send } from "lucide-react";
 
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
