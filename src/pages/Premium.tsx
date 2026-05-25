@@ -93,7 +93,12 @@ export default function Premium() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Procesado por Paddle como reseller. Podés cancelar cuando quieras desde tu portal.
+          Procesado por Paddle.com como Merchant of Record. Podés cancelar cuando quieras desde{" "}
+          <a href="https://paddle.net" target="_blank" rel="noopener noreferrer" className="underline">paddle.net</a>.
+          Garantía de devolución de 30 días — ver{" "}
+          <a href="/refund" className="underline">Política de Reembolsos</a>,{" "}
+          <a href="/terms" className="underline">Términos</a> y{" "}
+          <a href="/privacy" className="underline">Privacidad</a>.
         </p>
       </main>
     </div>
