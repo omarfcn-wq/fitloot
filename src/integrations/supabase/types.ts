@@ -251,6 +251,10 @@ export type Database = {
       redemptions: {
         Row: {
           credits_spent: number
+          delivered_at: string | null
+          delivered_by: string | null
+          delivery_code: string | null
+          delivery_notes: string | null
           id: string
           redeemed_at: string
           reward_id: string | null
@@ -259,6 +263,10 @@ export type Database = {
         }
         Insert: {
           credits_spent: number
+          delivered_at?: string | null
+          delivered_by?: string | null
+          delivery_code?: string | null
+          delivery_notes?: string | null
           id?: string
           redeemed_at?: string
           reward_id?: string | null
@@ -267,6 +275,10 @@ export type Database = {
         }
         Update: {
           credits_spent?: number
+          delivered_at?: string | null
+          delivered_by?: string | null
+          delivery_code?: string | null
+          delivery_notes?: string | null
           id?: string
           redeemed_at?: string
           reward_id?: string | null
