@@ -21,6 +21,7 @@ import WeeklyMetrics from "./pages/WeeklyMetrics";
 import FitnessScore from "./pages/FitnessScore";
 import Routines from "./pages/Routines";
 import TermsOfService from "./pages/TermsOfService";
+import Premium from "./pages/Premium";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const App = () => (
                   <Route path="/routines" element={<Routines />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/premium" element={<Premium />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
