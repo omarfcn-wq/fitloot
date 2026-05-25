@@ -16,7 +16,8 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useI18n } from "@/i18n";
 import { isMobileLikeEnvironment } from "@/utils/platform";
-import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight, HelpCircle } from "lucide-react";
+import { Coins, TrendingUp, Clock, Target, Loader2, Trophy, Flame, ChevronRight, HelpCircle, Sparkles } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const { showTutorial, openTutorial, closeTutorial, completeOnboarding } = useOnboarding();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const { isPremium } = useSubscription();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -100,6 +102,14 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <LogActivityDialog />
+            {!isPremium && (
+              <Link to="/premium">
+                <Button variant="outline" className="gap-2 border-primary/50 text-primary hover:bg-primary/10">
+                  <Sparkles className="h-4 w-4" />
+                  Premium
+                </Button>
+              </Link>
+            )}
             <Button
               variant="outline"
               size="icon"
