@@ -184,6 +184,58 @@ export default function Rewards() {
             </div>
           </>
         )}
+
+        {user && redemptions.length > 0 && (
+          <section className="mt-16">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Mis canjes</h2>
+            <div className="space-y-3">
+              {redemptions.map((r: any) => {
+                const delivered = !!r.delivered_at;
+                return (
+                  <Card key={r.id} className="p-4 bg-card border-border">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-foreground">
+                          {r.rewards?.name ?? "Recompensa"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(r.redeemed_at).toLocaleString()} · {r.credits_spent} créditos
+                        </div>
+                      </div>
+                      {delivered ? (
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Entregado
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 gap-1">
+                          <Clock className="h-3 w-3" /> En proceso (24h)
+                        </Badge>
+                      )}
+                    </div>
+                    {delivered && r.delivery_code && (
+                      <div className="mt-3 p-3 rounded-lg bg-muted border border-border flex items-center justify-between gap-2">
+                        <code className="text-sm font-mono break-all">{r.delivery_code}</code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(r.delivery_code);
+                            toast.success("Código copiado");
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                    {delivered && r.delivery_notes && (
+                      <p className="mt-2 text-sm text-muted-foreground">{r.delivery_notes}</p>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
