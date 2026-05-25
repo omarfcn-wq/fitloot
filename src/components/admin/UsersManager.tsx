@@ -60,23 +60,33 @@ export function UsersManager({ users, isLoading, toggleAdminRole }: UsersManager
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID Usuario</TableHead>
+                  <TableHead>Usuario</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Rol</TableHead>
                   <TableHead className="text-right">Balance</TableHead>
                   <TableHead className="text-right">Actividades</TableHead>
-                  <TableHead className="text-right">Créditos Ganados</TableHead>
+                  <TableHead className="text-right">Créditos</TableHead>
                   <TableHead>Registro</TableHead>
+                  <TableHead>Último acceso</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-mono text-xs">
-                      {user.id.slice(0, 8)}...
+                    <TableCell className="font-medium">
+                      {user.name || user.email?.split("@")[0] || "Usuario"}
                       {user.id === currentUser?.id && (
                         <Badge variant="outline" className="ml-2 text-xs">
                           Tú
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {user.email || "—"}
+                      {!user.email_confirmed_at && user.email && (
+                        <Badge variant="outline" className="ml-2 text-[10px]">
+                          sin verificar
                         </Badge>
                       )}
                     </TableCell>
@@ -95,6 +105,11 @@ export function UsersManager({ users, isLoading, toggleAdminRole }: UsersManager
                     <TableCell className="text-right">{user.total_credits_earned}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {new Date(user.created_at).toLocaleDateString("es-ES")}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {user.last_sign_in_at
+                        ? new Date(user.last_sign_in_at).toLocaleDateString("es-ES")
+                        : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

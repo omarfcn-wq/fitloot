@@ -15,10 +15,14 @@ export interface AdminStats {
 export interface UserWithStats {
   id: string;
   email: string;
+  name: string | null;
   created_at: string;
+  last_sign_in_at: string | null;
+  email_confirmed_at: string | null;
   balance: number;
   total_activities: number;
   total_credits_earned: number;
+  last_activity_at: string | null;
   is_admin: boolean;
 }
 
@@ -148,46 +152,13 @@ export function useAdmin() {
     },
   });
 
-  // Fetch users with their stats (for moderation)
+  // Fetch users with their stats (via secure edge function with service role)
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async (): Promise<UserWithStats[]> => {
-      // Get all user credits (represents all users)
-      const { data: userCredits, error: creditsError } = await supabase
-        .from("user_credits")
-        .select("user_id, balance, created_at");
-      if (creditsError) throw creditsError;
-
-      // Get admin roles
-      const { data: adminRoles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-      const adminUserIds = new Set(adminRoles?.map((r) => r.user_id) || []);
-
-      // Get activity stats per user
-      const { data: activityStats } = await supabase
-        .from("activities")
-        .select("user_id, credits_earned");
-
-      const activityMap = new Map<string, { count: number; credits: number }>();
-      activityStats?.forEach((a) => {
-        const current = activityMap.get(a.user_id) || { count: 0, credits: 0 };
-        activityMap.set(a.user_id, {
-          count: current.count + 1,
-          credits: current.credits + a.credits_earned,
-        });
-      });
-
-      return (userCredits || []).map((uc) => ({
-        id: uc.user_id,
-        email: "Usuario", // Auth emails are not accessible via public API
-        created_at: uc.created_at,
-        balance: uc.balance,
-        total_activities: activityMap.get(uc.user_id)?.count || 0,
-        total_credits_earned: activityMap.get(uc.user_id)?.credits || 0,
-        is_admin: adminUserIds.has(uc.user_id),
-      }));
+      const { data, error } = await supabase.functions.invoke("admin-list-users");
+      if (error) throw error;
+      return (data?.users ?? []) as UserWithStats[];
     },
     enabled: isAdmin === true,
   });
