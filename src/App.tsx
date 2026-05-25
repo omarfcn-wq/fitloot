@@ -23,6 +23,7 @@ import Routines from "./pages/Routines";
 import TermsOfService from "./pages/TermsOfService";
 import Premium from "./pages/Premium";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
