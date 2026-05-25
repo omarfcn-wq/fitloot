@@ -4,12 +4,14 @@ import { RewardCard } from "@/components/RewardCard";
 import { useRewards } from "@/hooks/useRewards";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/i18n";
-import { Loader2, Gift, Filter, Search, X } from "lucide-react";
+import { Loader2, Gift, Filter, Search, X, CheckCircle2, Clock, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import type { TranslationKeys } from "@/i18n/es";
 
 const CATEGORIES: { value: string; labelKey: TranslationKeys }[] = [
