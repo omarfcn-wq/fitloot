@@ -23,6 +23,7 @@ import Routines from "./pages/Routines";
 import TermsOfService from "./pages/TermsOfService";
 import Premium from "./pages/Premium";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                   <Route path="/routines" element={<Routines />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/refund" element={<RefundPolicy />} />
                   <Route path="/premium" element={<Premium />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
