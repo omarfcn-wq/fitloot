@@ -113,6 +113,10 @@ export default function Admin() {
             />
           </TabsContent>
 
+          <TabsContent value="redemptions">
+            <RedemptionsManager />
+          </TabsContent>
+
           <TabsContent value="users">
             <UsersManager
               users={users}
