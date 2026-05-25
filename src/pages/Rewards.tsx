@@ -26,7 +26,7 @@ const CATEGORIES: { value: string; labelKey: TranslationKeys }[] = [
 
 export default function Rewards() {
   const { user } = useAuth();
-  const { rewards, isLoading, redeemReward, isRedeeming, canAfford } = useRewards();
+  const { rewards, redemptions, isLoading, redeemReward, isRedeeming, canAfford } = useRewards();
   const { t } = useI18n();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
