@@ -174,11 +174,17 @@
           <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
             <Logo size="sm" />
             <div className="flex items-center gap-4">
+              <Link to="/premium" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Precios
+              </Link>
               <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Política de Privacidad
               </Link>
               <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Condiciones del Servicio
+              </Link>
+              <Link to="/refund" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Reembolsos
               </Link>
             </div>
             <p className="text-sm text-muted-foreground">

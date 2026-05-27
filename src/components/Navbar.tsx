@@ -154,6 +154,11 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex gap-2 items-center">
+              <Link to="/premium">
+                <Button variant="ghost" size="sm">
+                  Precios
+                </Button>
+              </Link>
               <LanguageSwitcher />
               <ThemeToggle />
               <Link to="/auth">
